@@ -1,25 +1,25 @@
-[ ![Download](https://api.bintray.com/packages/bincrafters/public-conan/somelib%3Abincrafters/images/download.svg?version=0.0.0%3Astable) ](https://bintray.com/bincrafters/public-conan/somelib%3Abincrafters/0.0.0%3Astable/link)
-[![Build Status](https://travis-ci.org/bincrafters/conan-somelib.svg?branch=stable%2F0.0.0)](https://travis-ci.org/bincrafters/conan-somelib)
-[![Build status](https://ci.appveyor.com/api/projects/status/a5snyovachh6e8nh?svg=true)](https://ci.appveyor.com/project/BinCrafters/conan-somelib)
+[ ![Download](https://api.bintray.com/packages/bincrafters/public-conan/Botan%3Abincrafters/images/download.svg?version=2.1.0%3Astable) ](https://bintray.com/bincrafters/public-conan/Botan%3Abincrafters/2.1.0%3Astable/link)
+[![Build Status](https://travis-ci.org/bincrafters/conan-Botan.svg?branch=stable%2F2.1.0)](https://travis-ci.org/bincrafters/conan-Botan)
+[![Build status](https://ci.appveyor.com/api/projects/status/a5snyovachh6e8nh?svg=true)](https://ci.appveyor.com/project/BinCrafters/conan-Botan)
 
-Brief statement describing somelib
+Brief statement describing Botan
 
-[Conan.io](https://conan.io) package for [somelib](https://github.com/someauthor/somelib) project
+[Conan.io](https://conan.io) package for [Botan](https://github.com/someauthor/Botan) project
 
-The packages generated with this **conanfile** can be found in [Bintray](https://bintray.com/bincrafters/public-conan/somelib%3Abincrafters).
+The packages generated with this **conanfile** can be found in [Bintray](https://bintray.com/bincrafters/public-conan/Botan%3Abincrafters).
 
 ## For Users: Use this package
 
 ### Basic setup
 
-    $ conan install somelib/0.0.0@bincrafters/stable
+    $ conan install Botan/2.1.0@bincrafters/stable
 
 ### Project setup
 
 If you handle multiple dependencies in your project is better to add a *conanfile.txt*
 
     [requires]
-    somelib/0.0.0@bincrafters/stable
+    Botan/2.1.0@bincrafters/stable
 
     [generators]
     txt
@@ -46,7 +46,7 @@ The following command both runs all the steps of the conan file, and publishes t
 
 ## Upload
 
-    $ conan upload somelib/0.0.0@bincrafters/stable --all -r bincrafters
+    $ conan upload Botan/2.1.0@bincrafters/stable --all -r bincrafters
 
 ## License
 [LICENSE_TYPE](LICENSE)
