@@ -2,8 +2,6 @@
 [![Build Status](https://travis-ci.org/bincrafters/conan-Botan.svg?branch=stable%2F2.1.0)](https://travis-ci.org/bincrafters/conan-Botan)
 [![Build status](https://ci.appveyor.com/api/projects/status/a5snyovachh6e8nh?svg=true)](https://ci.appveyor.com/project/BinCrafters/conan-Botan)
 
-Brief statement describing Botan
-
 [Conan.io](https://conan.io) package for [Botan](https://github.com/someauthor/Botan) project
 
 The packages generated with this **conanfile** can be found in [Bintray](https://bintray.com/bincrafters/public-conan/Botan%3Abincrafters).
@@ -49,4 +47,4 @@ The following command both runs all the steps of the conan file, and publishes t
     $ conan upload Botan/2.1.0@bincrafters/stable --all -r bincrafters
 
 ## License
-[LICENSE_TYPE](LICENSE)
+[BSD-2-Clause](LICENSE)

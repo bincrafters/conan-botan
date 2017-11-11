@@ -12,6 +12,7 @@ class BotanConan(ConanFile):
     version = '2.1.0'
     url = "https://github.com/bincrafters/conan-botan"
     license = "https://github.com/randombit/botan/blob/master/license.txt"
+    description = "Botan is a cryptography library written in C++11."
     settings = (
         'os',
         'arch',
