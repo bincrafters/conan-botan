@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/bincrafters/conan-Botan.svg?branch=stable%2F2.1.0)](https://travis-ci.org/bincrafters/conan-Botan)
 [![Build status](https://ci.appveyor.com/api/projects/status/a5snyovachh6e8nh?svg=true)](https://ci.appveyor.com/project/BinCrafters/conan-Botan)
 
-[Conan.io](https://conan.io) package for [Botan](https://github.com/someauthor/Botan) project
+[Conan.io](https://conan.io) package for [Botan](https://github.com/randombit/Botan) project
 
 The packages generated with this **conanfile** can be found in [Bintray](https://bintray.com/bincrafters/public-conan/Botan%3Abincrafters).
 
