@@ -203,7 +203,10 @@ class BotanConan(ConanFile):
         self.copy(pattern="*.dylib", dst="lib", src="lib", keep_path=False)
 
     def package_info(self):
-        self.cpp_info.libs = ['botan-2', 'dl']
+        if self.settings.os != 'Windows':
+            self.cpp_info.libs = ['botan-2', 'dl']
+        else:
+            self.cpp_info.libs = ['botan', 'dl']
         if self.settings.os == 'Linux':
             self.cpp_info.libs.append('rt')
         if not self.options.shared:
