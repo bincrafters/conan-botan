@@ -63,7 +63,8 @@ class BotanConan(ConanFile):
         conan_arch = self.settings.arch
         conan_compiler = self.settings.compiler
         conan_os = self.settings.os
-        conan_libcxx = conan_compiler.libcxx
+        if conan_os != 'Windows':
+            conan_libcxx = conan_compiler.libcxx
         conan_build_type = self.settings.build_type
 
         if conan_compiler in ('clang', 'apple-clang'):
