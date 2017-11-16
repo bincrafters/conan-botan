@@ -137,9 +137,13 @@ class BotanConan(ConanFile):
             '--with-zlib' if self.options.zlib
             else ''
         )
-
+        
+        call_python = (
+            'python' if conan_os != 'Windows'
+            else ''
+        )
         self.run(('cd sources &&'
-                  ' ./configure.py'
+                  '{python_call} ./configure.py'
                   ' --cc-abi-flags="{abi}"'
                   ' --cc={compiler}'
                   ' --cpu={cpu}'
@@ -154,6 +158,7 @@ class BotanConan(ConanFile):
                   ' {shared}'
                   ' {sqlite3}'
                   ' {zlib}').format(**{
+                      'python_call': call_python,
                       'abi': botan_abi,
                       'amalgamation': botan_amalgamation,
                       'bzip2': botan_bzip2,
