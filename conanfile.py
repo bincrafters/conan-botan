@@ -139,7 +139,7 @@ class BotanConan(ConanFile):
         )
         
         call_python = (
-            'python' if conan_os != 'Windows'
+            'python' if conan_os == 'Windows'
             else ''
         )
         self.run(('cd sources &&'
