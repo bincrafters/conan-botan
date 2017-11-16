@@ -206,7 +206,10 @@ class BotanConan(ConanFile):
         if self.settings.os != 'Windows':
             self.cpp_info.libs = ['botan-2', 'dl']
         else:
-            self.cpp_info.libs = ['botan']
+            if self.settings.build_type == 'Debug':
+                self.cpp_info.libs = ['botand']
+            else:
+                self.cpp_info.libs = ['botan']
         if self.settings.os == 'Linux':
             self.cpp_info.libs.append('rt')
         if not self.options.shared:
