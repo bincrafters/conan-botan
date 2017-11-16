@@ -175,18 +175,23 @@ class BotanConan(ConanFile):
                       'zlib': botan_zlib,
                   }))
 
-        self.run(('cd sources &&'
-                  ' {ldflags}'
-                  ' make'
-                  ' {quiet}'
-                  ' -j{cpucount} 1>&1').format(**{
-                      'cpucount': cpu_count(),
-                      'ldflags': make_ldflags,
-                      'quiet': botan_quiet,
-                  }))
-
-        self.run(('cd sources &&'
+        if conan_os != 'Windows':
+            self.run(('cd sources &&'
+                      ' {ldflags}'
+                      ' make'
+                      ' {quiet}'
+                      ' -j{cpucount} 1>&1').format(**{
+                        'cpucount': cpu_count(),
+                        'ldflags': make_ldflags,
+                        'quiet': botan_quiet,
+                    }))
+            self.run(('cd sources &&'
                   ' make install'))
+        else:
+            self.run(('cd sources &&'
+                      ' nmake'))
+            self.run(('cd sources &&'
+                  ' nmake install'))
 
     def package(self):
         self.copy(pattern="LICENSE")
