@@ -41,6 +41,9 @@ class BotanConan(ConanFile):
         'sqlite3=False',
         'zlib=False',
     )
+    
+    def configure(self):
+        self.settings.os = "Windows"
 
     def requirements(self):
         if self.options.bzip2:
@@ -142,82 +145,93 @@ class BotanConan(ConanFile):
             'python' if conan_os == 'Windows'
             else ''
         )
-        self.run(('cd sources &&'
-                  '{python_call} ./configure.py'
-                  ' --cc-abi-flags="{abi}"'
-                  ' --cc={compiler}'
-                  ' --cpu={cpu}'
-                  ' --distribution-info="Conan"'
-                  ' --prefix={prefix}'
-                  ' {amalgamation}'
-                  ' {bzip2}'
-                  ' {debug_info}'
-                  ' {debug_mode}'
-                  ' {openssl}'
-                  ' {quiet}'
-                  ' {shared}'
-                  ' {sqlite3}'
-                  ' {zlib}').format(**{
-                      'python_call': call_python,
-                      'abi': botan_abi,
-                      'amalgamation': botan_amalgamation,
-                      'bzip2': botan_bzip2,
-                      'compiler': botan_compiler,
-                      'cpu': botan_cpu,
-                      'debug_info': botan_debug_info,
-                      'debug_mode': botan_debug_mode,
-                      'openssl': botan_openssl,
-                      'prefix': self.package_folder,
-                      'quiet': botan_quiet,
-                      'shared': botan_shared,
-                      'single_amalgamation': botan_single_amalgamation,
-                      'sqlite3': botan_sqlite3,
-                      'zlib': botan_zlib,
-                  }))
-
-        if conan_os != 'Windows':
-            self.run(('cd sources &&'
-                      ' {ldflags}'
-                      ' make'
+        
+        with tools.chdir('sources'):
+            self.run(('{python_call} ./configure.py'
+                      ' --cc-abi-flags="{abi}"'
+                      ' --cc={compiler}'
+                      ' --cpu={cpu}'
+                      ' --distribution-info="Conan"'
+                      ' --prefix={prefix}'
+                      ' {amalgamation}'
+                      ' {bzip2}'
+                      ' {debug_info}'
+                      ' {debug_mode}'
+                      ' {openssl}'
                       ' {quiet}'
-                      ' -j{cpucount} 1>&1').format(**{
-                        'cpucount': cpu_count(),
-                        'ldflags': make_ldflags,
-                        'quiet': botan_quiet,
-                    }))
-            self.run(('cd sources &&'
-                  ' make install'))
-        else:
-            self.run(('cd sources &&'
-                      ' nmake'))
-            self.run(('cd sources &&'
-                  ' nmake install'))
+                      ' {shared}'
+                      ' {sqlite3}'
+                      ' {zlib}').format(**{
+                          'python_call': call_python,
+                          'abi': botan_abi,
+                          'amalgamation': botan_amalgamation,
+                          'bzip2': botan_bzip2,
+                          'compiler': botan_compiler,
+                          'cpu': botan_cpu,
+                          'debug_info': botan_debug_info,
+                          'debug_mode': botan_debug_mode,
+                          'openssl': botan_openssl,
+                          'prefix': self.package_folder,
+                          'quiet': botan_quiet,
+                          'shared': botan_shared,
+                          'single_amalgamation': botan_single_amalgamation,
+                          'sqlite3': botan_sqlite3,
+                          'zlib': botan_zlib,
+                      }))
+
+            if conan_os == 'Windows':
+                # Todo: Remove this patch when fixed in trunk, Botan issue #1297
+                tools.replace_in_file("Makefile", 
+                    r"$(SCRIPTS_DIR)\install.py",
+                    r"python $(SCRIPTS_DIR)\install.py")
+                vcvars = tools.vcvars_command(self.settings)
+                self.run(vcvars + ' && nmake')
+                self.run(vcvars + ' && nmake install')
+            else:
+                self.run(('{ldflags}'
+                          ' make'
+                          ' {quiet}'
+                          ' -j{cpucount} 1>&1').format(**{
+                            'cpucount': cpu_count(),
+                            'ldflags': make_ldflags,
+                            'quiet': botan_quiet,
+                        }))
+                self.run('make install')
 
     def package(self):
+        include_src = os.path.join("sources", "build")
+        include_dst = os.path.join("include", "botan")
         self.copy(pattern="LICENSE")
-        self.copy(pattern="*", dst="include", src="include")
-        self.copy(pattern="*.dll", dst="bin", src="bin", keep_path=False)
-        self.copy(pattern="*.lib", dst="lib", src="lib", keep_path=False)
-        self.copy(pattern="*.a", dst="lib", src="lib", keep_path=False)
-        self.copy(pattern="*.so*", dst="lib", src="lib", keep_path=False)
-        self.copy(pattern="*.dylib", dst="lib", src="lib", keep_path=False)
+        self.copy(pattern="*", dst=include_dst, src=include_src, keep_path=False)
+        self.copy(pattern="*.dll", dst="bin", keep_path=False)
+        self.copy(pattern="*.lib", dst="lib", keep_path=False)
+        self.copy(pattern="*.a", dst="lib", keep_path=False)
+        self.copy(pattern="*.so*", dst="lib", keep_path=False)
+        self.copy(pattern="*.dylib", dst="lib", keep_path=False)
 
     def package_info(self):
-        if self.settings.os != 'Windows':
-            self.cpp_info.libs = ['botan-2', 'dl']
-        else:
-            if self.settings.build_type == 'Debug':
-                self.cpp_info.libs = ['botand']
-            else:
-                self.cpp_info.libs = ['botan']
+        tools.collect_libs(self)
         if self.settings.os == 'Linux':
-            self.cpp_info.libs.append('rt')
-        if not self.options.shared:
             self.cpp_info.libs.append('pthread')
-        self.cpp_info.libdirs = [
-            'lib'
-        ]
-        self.cpp_info.includedirs = [
-            'include/botan-2'
-        ]
+        
+        #Trying simplified package_info method
+        #TODO: if it works, all below can be removed
+        
+        # if self.settings.os == 'Windows':
+            # if self.settings.build_type == 'Debug':
+                # self.cpp_info.libs = ['botand']
+            # else:
+                # self.cpp_info.libs = ['botan']
+        # else:
+            # self.cpp_info.libs = ['botan-2', 'dl']
+            # if self.settings.os == 'Linux':
+                # self.cpp_info.libs.append('rt')
+            # if not self.options.shared:
+                # self.cpp_info.libs.append('pthread')
+        # self.cpp_info.libdirs = [
+            # 'lib'
+        # ]
+        # self.cpp_info.includedirs = [
+            # 'include/botan-2'
+        # ]
 
