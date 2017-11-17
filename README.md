@@ -1,6 +1,6 @@
 [ ![Download](https://api.bintray.com/packages/bincrafters/public-conan/Botan%3Abincrafters/images/download.svg?version=2.1.0%3Astable) ](https://bintray.com/bincrafters/public-conan/Botan%3Abincrafters/2.1.0%3Astable/link)
-[![Build Status](https://travis-ci.org/bincrafters/conan-Botan.svg?branch=stable%2F2.1.0)](https://travis-ci.org/bincrafters/conan-Botan)
-[![Build status](https://ci.appveyor.com/api/projects/status/a5snyovachh6e8nh?svg=true)](https://ci.appveyor.com/project/BinCrafters/conan-Botan)
+[![Build Status](https://travis-ci.org/bincrafters/conan-botan.svg?branch=stable%2F2.1.0)](https://travis-ci.org/bincrafters/conan-botan)
+[![Build status](https://ci.appveyor.com/api/projects/status/x7nq36jr0t9c0lgn?svg=true)](https://ci.appveyor.com/project/BinCrafters/conan-botan)
 
 [Conan.io](https://conan.io) package for [Botan](https://github.com/randombit/Botan) project
 
