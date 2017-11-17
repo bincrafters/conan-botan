@@ -92,11 +92,18 @@ class BotanConan(ConanFile):
 
         if self.options.single_amalgamation:
             self.options.amalgamation = True
-
-        botan_abi = (
-            '-stdlib=libc++ -lc++abi' if is_linux_clang_libcxx
-            else ''
-        )
+        
+        botan_abi_flags = []
+        
+        if is_linux_clang_libcxx:
+          botan_abi_flags.extend(["-stdlib=libc++", "-lc++abi"])
+        if conan_arch == "x86":
+          botan_abi_flags.append('-m32')
+        elif conan_arch == "x86_64":
+          botan_abi_flags.append('-m64')
+          
+        botan_abi = ' '.join(botan_abi_flags) if botan_abi_flags else ' '  
+            
         botan_amalgamation = (
             '--amalgamation' if self.options.amalgamation
             else ''
@@ -231,4 +238,3 @@ class BotanConan(ConanFile):
         # self.cpp_info.includedirs = [
             # 'include/botan-2'
         # ]
-
