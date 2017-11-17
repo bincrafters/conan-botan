@@ -47,4 +47,4 @@ The following command both runs all the steps of the conan file, and publishes t
     $ conan upload Botan/2.1.0@bincrafters/stable --all -r bincrafters
 
 ## License
-[BSD-2-Clause](LICENSE)
+[BSD-3-Clause](LICENSE)
