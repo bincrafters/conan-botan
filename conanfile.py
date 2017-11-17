@@ -42,9 +42,6 @@ class BotanConan(ConanFile):
         'zlib=False',
     )
     
-    def configure(self):
-        self.settings.os = "Windows"
-
     def requirements(self):
         if self.options.bzip2:
             self.requires('bzip2/[>=1.0]@conan/stable')
