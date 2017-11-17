@@ -56,7 +56,7 @@ class BotanConan(ConanFile):
         source_url = "https://github.com/randombit/botan"
         tools.get("{0}/archive/{1}.tar.gz".format(source_url, self.version))
         extracted_dir = self.name + "-" + self.version
-        os.rename(extracted_dir, "sources")
+        os.rename(extracted_dir.lower(), "sources")
         
     # pylint: disable=too-many-locals
     def build(self):
