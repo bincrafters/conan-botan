@@ -85,6 +85,10 @@ class BotanConan(ConanFile):
             self.output.info('Running command: ' + make_install_cmd)
             self.run(make_install_cmd)
 
+        if self.options.shared and self.settings.os != 'Windows':
+            with tools.chdir(self.package_folder + '/lib'):
+                self.run('rm libbotan-2.a')
+
     def package_info(self):
         # Can't use self.collect_libs() because we used
         # pkg-config to populate the package directory.
