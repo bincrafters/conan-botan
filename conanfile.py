@@ -9,7 +9,7 @@ import os
 
 class BotanConan(ConanFile):
     name = 'Botan'
-    version = '2.1.0'
+    version = '2.3.0'
     url = "https://github.com/bincrafters/conan-botan"
     license = "https://github.com/randombit/botan/blob/master/license.txt"
     description = "Botan is a cryptography library written in C++11."
