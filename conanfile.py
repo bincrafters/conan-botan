@@ -288,7 +288,7 @@ class BotanConan(ConanFile):
         # Todo: Remove this patch when fixed in trunk, Botan issue #210
         runtime = str(self.settings.compiler.runtime)
 
-        tools.replace_in_file("Makefile"
+        tools.replace_in_file("Makefile",
                               r"/MD ",
                               r"/{runtime} ".format(runtime=runtime))
 
