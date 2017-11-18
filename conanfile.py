@@ -41,7 +41,7 @@ class BotanConan(ConanFile):
         'sqlite3=False',
         'zlib=False',
     )
-    
+
     def requirements(self):
         if self.options.bzip2:
             self.requires('bzip2/[>=1.0]@conan/stable')
@@ -57,13 +57,13 @@ class BotanConan(ConanFile):
         tools.get("{0}/archive/{1}.tar.gz".format(source_url, self.version))
         extracted_dir = self.name + "-" + self.version
         os.rename(extracted_dir.lower(), "sources")
-        
+
     def build(self):
         with tools.chdir('sources'):
             configure_cmd = self.create_configure_cmd()
             self.output.info('Running command: ' + configure_cmd)
             self.run(configure_cmd)
-            
+
             make_cmd = self.create_make_cmd()
             self.output.info('Running command: ' + make_cmd)
             self.run(make_cmd)
@@ -78,8 +78,8 @@ class BotanConan(ConanFile):
 
     def package_info(self):
         # Can't use self.collect_libs() because we used
-        # pkg-config to populate the package directory. 
-        
+        # pkg-config to populate the package directory.
+
         if self.settings.os == 'Windows':
             if self.settings.build_type == 'Debug':
                 self.cpp_info.libs = ['botand']
@@ -91,7 +91,7 @@ class BotanConan(ConanFile):
                 self.cpp_info.libs.append('rt')
             if not self.options.shared:
                 self.cpp_info.libs.append('pthread')
-        
+
         self.cpp_info.bindirs = [
             'lib',
             'bin'
@@ -116,9 +116,9 @@ class BotanConan(ConanFile):
             self.settings.compiler == 'clang' and
             self.settings.compiler.libcxx == 'libc++'
         )
-        
+
         botan_abi_flags = []
-        
+
         if is_linux_clang_libcxx:
             botan_abi_flags.extend(["-stdlib=libc++", "-lc++abi"])
 
@@ -127,12 +127,12 @@ class BotanConan(ConanFile):
                 botan_abi_flags.append('-m32')
             elif self.settings.arch == "x86_64":
                 botan_abi_flags.append('-m64')
-          
-        botan_abi = ' '.join(botan_abi_flags) if botan_abi_flags else ' '  
+
+        botan_abi = ' '.join(botan_abi_flags) if botan_abi_flags else ' '
 
         if self.options.single_amalgamation:
             self.options.amalgamation = True
-        
+
         botan_amalgamation = (
             '--amalgamation' if self.options.amalgamation
             else ''
@@ -177,43 +177,42 @@ class BotanConan(ConanFile):
             'python' if self.settings.os == 'Windows'
             else ''
         )
-        
+
         configure_cmd = ('{python_call} ./configure.py'
-                      ' --cc-abi-flags="{abi}"'
-                      ' --cc={compiler}'
-                      ' --cpu={cpu}'
-                      ' --distribution-info="Conan"'
-                      ' --prefix={prefix}'
-                      ' {amalgamation}'
-                      ' {single_amalgamation}'
-                      ' {bzip2}'
-                      ' {debug_info}'
-                      ' {debug_mode}'
-                      ' {openssl}'
-                      ' {quiet}'
-                      ' {shared}'
-                      ' {sqlite3}'
-                      ' {zlib}').format(
-                          python_call = call_python,
-                          abi = botan_abi,
-                          amalgamation = botan_amalgamation,
-                          bzip2 = botan_bzip2,
-                          compiler = botan_compiler,
-                          cpu = self.settings.arch,
-                          debug_info = botan_debug_info,
-                          debug_mode = botan_debug_mode,
-                          openssl = botan_openssl,
-                          prefix = self.package_folder,
-                          quiet = botan_quiet,
-                          shared = botan_shared,
-                          single_amalgamation = botan_single_amalgamation,
-                          sqlite3 = botan_sqlite3,
-                          zlib = botan_zlib,
+                         ' --cc-abi-flags="{abi}"'
+                         ' --cc={compiler}'
+                         ' --cpu={cpu}'
+                         ' --distribution-info="Conan"'
+                         ' --prefix={prefix}'
+                         ' {amalgamation}'
+                         ' {single_amalgamation}'
+                         ' {bzip2}'
+                         ' {debug_info}'
+                         ' {debug_mode}'
+                         ' {openssl}'
+                         ' {quiet}'
+                         ' {shared}'
+                         ' {sqlite3}'
+                         ' {zlib}').format(
+                          python_call=call_python,
+                          abi=botan_abi,
+                          amalgamation=botan_amalgamation,
+                          bzip2=botan_bzip2,
+                          compiler=botan_compiler,
+                          cpu=self.settings.arch,
+                          debug_info=botan_debug_info,
+                          debug_mode=botan_debug_mode,
+                          openssl=botan_openssl,
+                          prefix=self.package_folder,
+                          quiet=botan_quiet,
+                          shared=botan_shared,
+                          single_amalgamation=botan_single_amalgamation,
+                          sqlite3=botan_sqlite3,
+                          zlib=botan_zlib,
                       )
-                      
-        return configure_cmd      
-        
-        
+
+        return configure_cmd
+
     def create_make_cmd(self):
         if self.settings.os == 'Windows':
             self.patch_makefile_win()
@@ -221,56 +220,56 @@ class BotanConan(ConanFile):
         else:
             make_cmd = self.get_make_cmd()
         return make_cmd
-    
+
     def get_make_cmd(self):
         botan_quiet = (
             '--quiet' if self.options.quiet
             else ''
         )
-        
+
         is_linux_clang_libcxx = (
             self.settings.os == 'Linux' and
             self.settings.compiler == 'clang' and
             self.settings.compiler.libcxx == 'libc++'
         )
-        
+
         if is_linux_clang_libcxx:
             make_ldflags = 'LDFLAGS=-lc++abi'
         else:
             make_ldflags = ''
-            
+
         make_cmd = ('{ldflags}'
-                              ' make'
-                              ' {quiet}'
-                              ' -j{cpucount} 1>&1').format(
-                                    ldflags = make_ldflags,
-                                    quiet = botan_quiet,
-                                    cpucount = cpu_count()
-                                )
+                    ' make'
+                    ' {quiet}'
+                    ' -j{cpucount} 1>&1').format(
+                        ldflags=make_ldflags,
+                        quiet=botan_quiet,
+                        cpucount=cpu_count()
+                    )
         return make_cmd
-    
+
     def get_nmake_cmd(self):
         vcvars = tools.vcvars_command(self.settings)
         make_cmd = vcvars + ' && nmake'
         return make_cmd
-        
+
     def patch_makefile_win(self):
         # Todo: Remove this patch when fixed in trunk, Botan issue #1297
-        tools.replace_in_file("Makefile", 
-            r"$(SCRIPTS_DIR)\install.py",
-            r"python $(SCRIPTS_DIR)\install.py")
-            
+        tools.replace_in_file("Makefile",
+                              r"$(SCRIPTS_DIR)\install.py",
+                              r"python $(SCRIPTS_DIR)\install.py")
+
         # Todo: Remove this patch when fixed in trunk, Botan issue #210
         runtime = str(self.settings.compiler.runtime)
 
-        tools.replace_in_file("Makefile", 
-            r"/MD ",
-            r"/{runtime} ".format(runtime))
-        
-        tools.replace_in_file("Makefile", 
-            r"/MDd ",
-            r"/{runtime} ".format(runtime))
-            
+        tools.replace_in_file("Makefile"
+                              r"/MD ",
+                              r"/{runtime} ".format(runtime))
+
+        tools.replace_in_file("Makefile",
+                              r"/MDd ",
+                              r"/{runtime} ".format(runtime))
+
     def get_make_install_cmd(self):
         if self.settings.os == 'Windows':
             vcvars = tools.vcvars_command(self.settings)
