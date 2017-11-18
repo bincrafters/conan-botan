@@ -261,10 +261,15 @@ class BotanConan(ConanFile):
             r"python $(SCRIPTS_DIR)\install.py")
             
         # Todo: Remove this patch when fixed in trunk, Botan issue #210
+        runtime = str(self.settings.compiler.runtime)
+
         tools.replace_in_file("Makefile", 
-            r"/MD",
-            r"/" + str(self.settings.compiler.runtime))
+            r"/MD ",
+            r"/{runtime} ".format(runtime))
         
+        tools.replace_in_file("Makefile", 
+            r"/MDd ",
+            r"/{runtime} ".format(runtime))
             
     def get_make_install_cmd(self):
         if self.settings.os == 'Windows':
