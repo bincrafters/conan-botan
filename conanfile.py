@@ -102,6 +102,8 @@ class BotanConan(ConanFile):
             self.cpp_info.libs = ['botan-2', 'dl']
             if self.settings.os == 'Linux':
                 self.cpp_info.libs.append('rt')
+            if self.settings.os == 'Macos':
+                self.cpp_info.exelinkflags = ['-framework Security']
             if not self.options.shared:
                 self.cpp_info.libs.append('pthread')
 
