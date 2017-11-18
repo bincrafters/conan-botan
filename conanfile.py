@@ -82,8 +82,7 @@ class BotanConan(ConanFile):
             self.run(make_install_cmd)
 
         if self.options.shared and self.settings.os != 'Windows':
-            with tools.chdir(self.package_folder + '/lib'):
-                self.run('rm libbotan-2.a')
+            os.unlink(os.path.join('lib', 'libbotan-2.a'))
 
     def package_info(self):
         # Can't use self.collect_libs() because we used
@@ -286,15 +285,8 @@ class BotanConan(ConanFile):
                               r"python $(SCRIPTS_DIR)\install.py")
 
         # Todo: Remove this patch when fixed in trunk, Botan issue #210
-        runtime = str(self.settings.compiler.runtime)
-
-        tools.replace_in_file("Makefile",
-                              r"/MD ",
-                              r"/{runtime} ".format(runtime=runtime))
-
-        tools.replace_in_file("Makefile",
-                              r"/MDd ",
-                              r"/{runtime} ".format(runtime=runtime))
+        if str.startswith(str(self.settings.compiler.runtime), "MT"):
+            tools.replace_in_file("Makefile", r"/MD", r"/MT")
 
     def get_make_install_cmd(self):
         if self.settings.os == 'Windows':
