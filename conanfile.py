@@ -74,8 +74,8 @@ class BotanConan(ConanFile):
             self.run(make_cmd)
 
     def package(self):
+        self.copy(pattern="license.txt", src="sources")
         with tools.chdir("sources"):
-            self.copy(pattern="license.txt")
             self.output.info('Files are copied via make/pkg-config')
             make_install_cmd = self.get_make_install_cmd()
             self.output.info('Running command: ' + make_install_cmd)
