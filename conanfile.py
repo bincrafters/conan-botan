@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# pylint: disable=missing-docstring,invalid-name
 from multiprocessing import cpu_count
 from conans import ConanFile, tools
 from conans.errors import ConanException
