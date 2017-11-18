@@ -290,11 +290,11 @@ class BotanConan(ConanFile):
 
         tools.replace_in_file("Makefile"
                               r"/MD ",
-                              r"/{runtime} ".format(runtime))
+                              r"/{runtime} ".format(runtime=runtime))
 
         tools.replace_in_file("Makefile",
                               r"/MDd ",
-                              r"/{runtime} ".format(runtime))
+                              r"/{runtime} ".format(runtime=runtime))
 
     def get_make_install_cmd(self):
         if self.settings.os == 'Windows':
