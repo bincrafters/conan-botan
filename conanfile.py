@@ -53,7 +53,7 @@ class BotanConan(ConanFile):
             self.requires('sqlite3/[>=3.18]@bincrafters/stable')
 
     def config_options_settings(self):
-        if self.settings.os == 'Linux':
+        if self.settings.compiler != 'Visual Studio':
             self.check_cxx_abi_settings()
 
     def source(self):
