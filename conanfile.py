@@ -4,6 +4,7 @@
 # pylint: disable=missing-docstring,invalid-name
 from multiprocessing import cpu_count
 from conans import ConanFile, tools
+from conans.errors import ConanException
 import os
 
 
@@ -51,6 +52,14 @@ class BotanConan(ConanFile):
             self.requires('zlib/[>=1.2]@conan/stable')
         if self.options.sqlite3:
             self.requires('sqlite3/[>=3.18]@bincrafters/stable')
+
+    def config_options(self):
+        compiler = self.settings.compiler
+        compiler_version = float(self.settings.compiler.version.value)
+        if compiler == 'gcc' and compiler_version > 5:
+            if compiler.libcxx != 'libstdc++11':
+                raise ConanException('Using Botan with GCC > 5 on Linux '
+                                     'requires "compiler.libcxx=libstdc++11"')
 
     def source(self):
         source_url = "https://github.com/randombit/botan"
