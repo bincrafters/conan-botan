@@ -260,6 +260,12 @@ class BotanConan(ConanFile):
             r"$(SCRIPTS_DIR)\install.py",
             r"python $(SCRIPTS_DIR)\install.py")
             
+        # Todo: Remove this patch when fixed in trunk, Botan issue #210
+        tools.replace_in_file("Makefile", 
+            r"/MD",
+            r"/" + str(self.settings.compiler.runtime))
+        
+            
     def get_make_install_cmd(self):
         if self.settings.os == 'Windows':
             vcvars = tools.vcvars_command(self.settings)
