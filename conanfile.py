@@ -55,7 +55,7 @@ class BotanConan(ConanFile):
 
     def config_options_settings(self):
         if self.settings.os == 'Linux':
-            self.check_cxx_abi()
+            self.check_cxx_abi_settings()
 
     def source(self):
         source_url = "https://github.com/randombit/botan"
