@@ -51,6 +51,14 @@ def get_os():
     return platform.system().replace("Darwin", "Macos")
 
 
+def _is_valid_abi(build):
+    compiler = build.settings['compiler']
+    version = build.settings['compiler.version']
+    libcxx = build.settings['compiler.libcxx']
+    if compiler == 'gcc' and float(version) > 5:
+        return libcxx == 'libstdc++11'
+    return True
+
 if __name__ == "__main__":
     name = get_name_from_recipe()
     username, channel, version = get_env_vars()
@@ -67,4 +75,8 @@ if __name__ == "__main__":
         stable_branch_pattern="stable/*")
 
     builder.add_common_builds(shared_option_name=name + ":shared", pure_c=False)
+
+    if get_os() == "Linux":
+        builder.builds = filter(_is_valid_abi, builder.builds)
+
     builder.run()
