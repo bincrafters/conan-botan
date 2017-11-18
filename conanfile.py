@@ -60,7 +60,7 @@ class BotanConan(ConanFile):
         source_url = "https://botan.randombit.net/releases"
         tools.get("{0}/{1}-{2}.tgz".format(source_url, self.name, self.version))
         extracted_dir = self.name + "-" + self.version
-        os.rename(extracted_dir.lower(), "sources")
+        os.rename(extracted_dir, "sources")
 
     def build(self):
         with tools.chdir('sources'):
