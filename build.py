@@ -59,6 +59,21 @@ def _is_valid_abi(build):
         return libcxx == 'libstdc++11'
     return True
 
+
+def _fix_clang_abi(build):
+    compiler = build.settings['compiler']
+    libcxx = build.settings['compiler.libcxx']
+    if compiler == 'clang' and libcxx == 'libstdc++':
+        build.settings['compiler.libcxx'] = 'libstdc++11'
+    return build
+
+
+def _filtered_builds(builder):
+    builds = filter(_is_valid_abi, builder.builds)
+    builds = map(_fix_clang_abi, builds)
+    return builds
+
+
 if __name__ == "__main__":
     name = get_name_from_recipe()
     username, channel, version = get_env_vars()
@@ -77,6 +92,6 @@ if __name__ == "__main__":
     builder.add_common_builds(shared_option_name=name + ":shared", pure_c=False)
 
     if get_os() == "Linux":
-        builder.builds = filter(_is_valid_abi, builder.builds)
+        builder.builds = _filtered_builds(builder)
 
     builder.run()

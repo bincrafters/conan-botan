@@ -53,13 +53,9 @@ class BotanConan(ConanFile):
         if self.options.sqlite3:
             self.requires('sqlite3/[>=3.18]@bincrafters/stable')
 
-    def config_options(self):
-        compiler = self.settings.compiler
-        compiler_version = float(self.settings.compiler.version.value)
-        if compiler == 'gcc' and compiler_version > 5:
-            if compiler.libcxx != 'libstdc++11':
-                raise ConanException('Using Botan with GCC > 5 on Linux '
-                                     'requires "compiler.libcxx=libstdc++11"')
+    def config_options_settings(self):
+        if self.settings.os == 'Linux':
+            self.check_cxx_abi()
 
     def source(self):
         source_url = "https://github.com/randombit/botan"
@@ -235,6 +231,21 @@ class BotanConan(ConanFile):
         else:
             make_cmd = self.get_make_cmd()
         return make_cmd
+
+    def check_cxx_abi_settings(self):
+        compiler = self.settings.compiler
+        version = float(self.settings.compiler.version.value)
+        libcxx = compiler.libcxx
+        if compiler == 'gcc' and version > 5 and libcxx != 'libstdc++11':
+            raise ConanException(
+                'Using Botan with GCC > 5 on Linux requires '
+                '"compiler.libcxx=libstdc++11"')
+        elif compiler == 'clang' and libcxx not in ['libstdc++11', 'libcxx']:
+            raise ConanException(
+                'Using Botan with Clang on Linux requires either '
+                '"compiler.libcxx=libstdc++11" '
+                'or '
+                '"compiler.libcxx=libcxx"')
 
     def get_make_cmd(self):
         botan_quiet = (
