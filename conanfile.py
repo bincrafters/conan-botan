@@ -84,12 +84,13 @@ class BotanConan(ConanFile):
             os.unlink(os.path.join(self.package_folder, 'lib', 'libbotan-2.a'))
 
     def package_info(self):
-        # Can't use self.collect_libs() because we used
-        # pkg-config to populate the package directory.
-
-        if self.settings.compiler == "Visual Studio":
-            self.cpp_info.libs.append("ws2_32")
-            self.cpp_info.libs.append('botand' if self.settings.build_type == 'Debug' else 'botan')
+        if self.settings.compiler == 'Visual Studio':
+            if not self.options.shared:
+                self.cpp_info.libs.append("ws2_32")
+            if self.settings.build_type == 'Debug':
+                self.cpp_info.libs.append('botand')
+            else:
+                self.cpp_info.libs.append('botan')
         else:
             self.cpp_info.libs.extend(['botan-2', 'dl'])
             if self.settings.os == 'Linux':
