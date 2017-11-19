@@ -57,10 +57,10 @@ class BotanConan(ConanFile):
             self.check_cxx_abi_settings()
 
     def source(self):
-        source_url = "https://github.com/randombit/botan"
-        tools.get("{0}/archive/{1}.tar.gz".format(source_url, self.version))
+        source_url = "https://botan.randombit.net/releases"
+        tools.get("{0}/{1}-{2}.tgz".format(source_url, self.name, self.version))
         extracted_dir = self.name + "-" + self.version
-        os.rename(extracted_dir.lower(), "sources")
+        os.rename(extracted_dir, "sources")
 
     def build(self):
         with tools.chdir('sources'):
@@ -88,6 +88,7 @@ class BotanConan(ConanFile):
         # pkg-config to populate the package directory.
 
         if self.settings.compiler == "Visual Studio":
+            self.cpp_info.libs.append("ws2_32")
             if self.settings.build_type == 'Debug':
                 self.cpp_info.libs = ['botand']
             else:
