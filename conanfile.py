@@ -89,12 +89,9 @@ class BotanConan(ConanFile):
 
         if self.settings.compiler == "Visual Studio":
             self.cpp_info.libs.append("ws2_32")
-            if self.settings.build_type == 'Debug':
-                self.cpp_info.libs = ['botand']
-            else:
-                self.cpp_info.libs = ['botan']
+            self.cpp_info.append('botand' if self.settings.build_type == 'Debug' else 'botan')
         else:
-            self.cpp_info.libs = ['botan-2', 'dl']
+            self.cpp_info.libs.extend(['botan-2', 'dl'])
             if self.settings.os == 'Linux':
                 self.cpp_info.libs.append('rt')
             if self.settings.os == 'Macos':
