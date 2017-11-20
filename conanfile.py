@@ -98,16 +98,9 @@ class BotanConan(ConanFile):
             if not self.options.shared:
                 self.cpp_info.libs.append('pthread')
 
-        self.cpp_info.bindirs = [
-            'lib',
-            'bin'
-        ]
-        self.cpp_info.libdirs = [
-            'lib'
-        ]
-        self.cpp_info.includedirs = [
-            'include/botan-2'
-        ]
+        self.cpp_info.libdirs = ['lib']
+        self.cpp_info.bindirs = ['lib', 'bin']
+        self.cpp_info.includedirs = ['include/botan-2']
 
     def create_configure_cmd(self):
         if self.settings.compiler in ('clang', 'apple-clang'):
@@ -117,15 +110,9 @@ class BotanConan(ConanFile):
         else:
             botan_compiler = 'msvc'
 
-        is_linux_clang_libcxx = (
-            self.settings.os == 'Linux' and
-            self.settings.compiler == 'clang' and
-            self.settings.compiler.libcxx == 'libc++'
-        )
-
         botan_abi_flags = []
 
-        if is_linux_clang_libcxx:
+        if self.is_linux_clang_libcxx():
             botan_abi_flags.extend(["-stdlib=libc++", "-lc++abi"])
 
         if botan_compiler in ['clang', 'apple-clang', 'gcc']:
@@ -136,85 +123,45 @@ class BotanConan(ConanFile):
 
         botan_abi = ' '.join(botan_abi_flags) if botan_abi_flags else ' '
 
-        if self.options.single_amalgamation:
-            self.options.amalgamation = True
+        if self.options.single_amalgamation: self.options.amalgamation = True
+        
+        build_flags = []
+        
+        if self.options.amalgamation: build_flags.append('--amalgamation')
+        
+        if self.options.single_amalgamation: build_flags.append('--single-amalgamation-file')
+        
+        if self.options.bzip2: build_flags.append('--with-bzip2')
+        
+        if self.options.openssl: build_flags.append('--with-openssl')
+        
+        if self.options.quiet: build_flags.append('--quiet')
+        
+        if self.options.sqlite3: build_flags.append('--with-sqlite3')
+        
+        if self.options.zlib: build_flags.append('--with-zlib')
+        
+        if self.options.debug_info: build_flags.append('--with-debug-info')
+        
+        if str(self.settings.build_type).lower() == 'debug': build_flags.append('--debug-mode')
+        
+        if not self.options.shared: build_flags.append('--disable-shared')
 
-        botan_amalgamation = (
-            '--amalgamation' if self.options.amalgamation
-            else ''
-        )
-        botan_single_amalgamation = (
-            '--single-amalgamation-file' if self.options.single_amalgamation
-            else ''
-        )
-        botan_bzip2 = (
-            '--with-bzip2' if self.options.bzip2
-            else ''
-        )
-        botan_debug_info = (
-            '--with-debug-info' if self.options.debug_info
-            else ''
-        )
-        botan_debug_mode = (
-            '--debug-mode' if str(self.settings.build_type).lower() == 'debug'
-            else ''
-        )
-        botan_openssl = (
-            '--with-openssl' if self.options.openssl
-            else ''
-        )
-        botan_quiet = (
-            '--quiet' if self.options.quiet
-            else ''
-        )
-        botan_shared = (
-            '' if self.options.shared
-            else '--disable-shared'
-        )
-        botan_sqlite3 = (
-            '--with-sqlite3' if self.options.sqlite3
-            else ''
-        )
-        botan_zlib = (
-            '--with-zlib' if self.options.zlib
-            else ''
-        )
-        call_python = (
-            'python' if self.settings.os == 'Windows'
-            else ''
-        )
+        call_python = 'python' if self.settings.os == 'Windows' else ''
 
         configure_cmd = ('{python_call} ./configure.py'
+                         ' --distribution-info="Conan"'
                          ' --cc-abi-flags="{abi}"'
                          ' --cc={compiler}'
                          ' --cpu={cpu}'
-                         ' --distribution-info="Conan"'
                          ' --prefix={prefix}'
-                         ' {amalgamation}'
-                         ' {single_amalgamation}'
-                         ' {bzip2}'
-                         ' {debug_info}'
-                         ' {debug_mode}'
-                         ' {openssl}'
-                         ' {quiet}'
-                         ' {shared}'
-                         ' {sqlite3}'
-                         ' {zlib}').format(
+                         ' {build_flags}').format(
                           python_call=call_python,
                           abi=botan_abi,
-                          amalgamation=botan_amalgamation,
-                          bzip2=botan_bzip2,
                           compiler=botan_compiler,
                           cpu=self.settings.arch,
-                          debug_info=botan_debug_info,
-                          debug_mode=botan_debug_mode,
-                          openssl=botan_openssl,
                           prefix=self.package_folder,
-                          quiet=botan_quiet,
-                          shared=botan_shared,
-                          single_amalgamation=botan_single_amalgamation,
-                          sqlite3=botan_sqlite3,
-                          zlib=botan_zlib,
+                          build_flags=' '.join(build_flags),
                       )
 
         return configure_cmd
@@ -243,21 +190,13 @@ class BotanConan(ConanFile):
                 '"compiler.libcxx=libcxx"')
 
     def get_make_cmd(self):
-        botan_quiet = (
-            '--quiet' if self.options.quiet
-            else ''
-        )
-
-        is_linux_clang_libcxx = (
-            self.settings.os == 'Linux' and
-            self.settings.compiler == 'clang' and
-            self.settings.compiler.libcxx == 'libc++'
-        )
-
-        if is_linux_clang_libcxx:
+        
+        if self.is_linux_clang_libcxx():
             make_ldflags = 'LDFLAGS=-lc++abi'
         else:
             make_ldflags = ''
+        
+        botan_quiet = '--quiet' if self.options.quiet else ''
 
         make_cmd = ('{ldflags}'
                     ' make'
@@ -291,3 +230,10 @@ class BotanConan(ConanFile):
         else:
             make_install_cmd = 'make install'
         return make_install_cmd
+
+    def is_linux_clang_libcxx(self):
+        return (
+            self.settings.os == 'Linux' and
+            self.settings.compiler == 'clang' and
+            self.settings.compiler.libcxx == 'libc++'
+        )
