@@ -9,7 +9,7 @@ import os
 
 class BotanConan(ConanFile):
     name = 'Botan'
-    version = '2.1.0'
+    version = '2.3.0'
     url = "https://github.com/bincrafters/conan-botan"
     license = "https://github.com/randombit/botan/blob/master/license.txt"
     description = "Botan is a cryptography library written in C++11."
@@ -85,6 +85,8 @@ class BotanConan(ConanFile):
 
     def package_info(self):
         if self.settings.compiler == 'Visual Studio':
+            if not self.options.shared:
+                self.cpp_info.libs.append("ws2_32")
             if self.settings.build_type == 'Debug':
                 self.cpp_info.libs.append('botand')
             else:
