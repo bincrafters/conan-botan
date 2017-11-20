@@ -163,7 +163,7 @@ class BotanConan(ConanFile):
                           compiler=botan_compiler,
                           cpu=self.settings.arch,
                           prefix=self.package_folder,
-                          build_flags=' '.join(build_flags),
+                          build_flags=' '.join(build_flags)
                       )
 
         return configure_cmd
