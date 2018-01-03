@@ -8,10 +8,11 @@ import os
 
 
 class BotanConan(ConanFile):
-    name = 'Botan'
+    name = 'botan'
     version = '2.3.0'
     url = "https://github.com/bincrafters/conan-botan"
-    license = "https://github.com/randombit/botan/blob/master/license.txt"
+    license = "BSD 2-clause"
+    exports = ["LICENSE.md"]
     description = "Botan is a cryptography library written in C++11."
     settings = (
         'os',
@@ -52,14 +53,14 @@ class BotanConan(ConanFile):
         if self.options.sqlite3:
             self.requires('sqlite3/[>=3.18]@bincrafters/stable')
 
-    def config_options_settings(self):
+    def config_options(self):
         if self.settings.compiler != 'Visual Studio':
             self.check_cxx_abi_settings()
 
     def source(self):
         source_url = "https://botan.randombit.net/releases"
-        tools.get("{0}/{1}-{2}.tgz".format(source_url, self.name, self.version))
-        extracted_dir = self.name + "-" + self.version
+        tools.get("{0}/Botan-{1}.tgz".format(source_url, self.version))
+        extracted_dir = "Botan-" + self.version
         os.rename(extracted_dir, "sources")
 
     def build(self):
@@ -126,27 +127,27 @@ class BotanConan(ConanFile):
         botan_abi = ' '.join(botan_abi_flags) if botan_abi_flags else ' '
 
         if self.options.single_amalgamation: self.options.amalgamation = True
-        
+
         build_flags = []
-        
+
         if self.options.amalgamation: build_flags.append('--amalgamation')
-        
+
         if self.options.single_amalgamation: build_flags.append('--single-amalgamation-file')
-        
+
         if self.options.bzip2: build_flags.append('--with-bzip2')
-        
+
         if self.options.openssl: build_flags.append('--with-openssl')
-        
+
         if self.options.quiet: build_flags.append('--quiet')
-        
+
         if self.options.sqlite3: build_flags.append('--with-sqlite3')
-        
+
         if self.options.zlib: build_flags.append('--with-zlib')
-        
+
         if self.options.debug_info: build_flags.append('--with-debug-info')
-        
+
         if str(self.settings.build_type).lower() == 'debug': build_flags.append('--debug-mode')
-        
+
         if not self.options.shared: build_flags.append('--disable-shared')
 
         call_python = 'python' if self.settings.os == 'Windows' else ''
@@ -192,12 +193,12 @@ class BotanConan(ConanFile):
                 '"compiler.libcxx=libcxx"')
 
     def get_make_cmd(self):
-        
+
         if self.is_linux_clang_libcxx():
             make_ldflags = 'LDFLAGS=-lc++abi'
         else:
             make_ldflags = ''
-        
+
         botan_quiet = '--quiet' if self.options.quiet else ''
 
         make_cmd = ('{ldflags}'
