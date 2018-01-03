@@ -8,10 +8,11 @@ import os
 
 
 class BotanConan(ConanFile):
-    name = 'Botan'
+    name = 'botan'
     version = '2.1.0'
     url = "https://github.com/bincrafters/conan-botan"
-    license = "https://github.com/randombit/botan/blob/master/license.txt"
+    license = "BSD 2-clause"
+    exports = ["LICENSE.md"]
     description = "Botan is a cryptography library written in C++11."
     settings = (
         'os',
@@ -58,8 +59,8 @@ class BotanConan(ConanFile):
 
     def source(self):
         source_url = "https://botan.randombit.net/releases"
-        tools.get("{0}/{1}-{2}.tgz".format(source_url, self.name, self.version))
-        extracted_dir = self.name + "-" + self.version
+        tools.get("{0}/Botan-{1}.tgz".format(source_url, self.version))
+        extracted_dir = "Botan-" + self.version
         os.rename(extracted_dir, "sources")
 
     def build(self):
