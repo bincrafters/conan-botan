@@ -183,12 +183,12 @@ class BotanConan(ConanFile):
             raise ConanException(
                 'Using Botan with GCC > 5 on Linux requires '
                 '"compiler.libcxx=libstdc++11"')
-        elif compiler == 'clang' and libcxx not in ['libstdc++11', 'libcxx']:
+        elif compiler == 'clang' and libcxx not in ['libstdc++11', 'libc++']:
             raise ConanException(
                 'Using Botan with Clang on Linux requires either '
                 '"compiler.libcxx=libstdc++11" '
                 'or '
-                '"compiler.libcxx=libcxx"')
+                '"compiler.libcxx=libc++"')
 
     def get_make_cmd(self):
 
