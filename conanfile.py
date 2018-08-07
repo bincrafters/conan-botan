@@ -11,15 +11,12 @@ class BotanConan(ConanFile):
     name = 'botan'
     version = '2.7.0'
     url = "https://github.com/bincrafters/conan-botan"
+    homepage = "https://github.com/randombit/botan"
+    author = "Bincrafters <bincrafters@gmail.com>"
     license = "BSD 2-clause"
     exports = ["LICENSE.md"]
     description = "Botan is a cryptography library written in C++11."
-    settings = (
-        'os',
-        'arch',
-        'compiler',
-        'build_type'
-    )
+    settings = 'os', 'arch', 'compiler', 'build_type'
     options = {
         'amalgamation': [True, False],
         'bzip2': [True, False],
@@ -47,7 +44,7 @@ class BotanConan(ConanFile):
         if self.options.bzip2:
             self.requires('bzip2/[>=1.0]@conan/stable')
         if self.options.openssl:
-            self.requires('OpenSSL/[>=1.0.2m]@conan/stable')
+            self.requires('OpenSSL/[>=1.0.2o]@conan/stable')
         if self.options.zlib:
             self.requires('zlib/[>=1.2]@conan/stable')
         if self.options.sqlite3:
@@ -58,27 +55,22 @@ class BotanConan(ConanFile):
             self.check_cxx_abi_settings()
 
     def source(self):
-        source_url = "https://github.com/randombit/botan/archive"
-        tools.get("{0}/{1}.tar.gz".format(source_url, self.version))
+        tools.get("{0}/archive/{1}.tar.gz".format(self.homepage, self.version))
         extracted_dir = "botan-" + self.version
         os.rename(extracted_dir, "sources")
 
     def build(self):
         with tools.chdir('sources'):
             configure_cmd = self.create_configure_cmd()
-            self.output.info('Running command: ' + configure_cmd)
             self.run(configure_cmd)
 
             make_cmd = self.create_make_cmd()
-            self.output.info('Running command: ' + make_cmd)
             self.run(make_cmd)
 
     def package(self):
-        self.copy(pattern="license.txt", src="sources")
+        self.copy(pattern="license.txt", dst="licenses", src="sources")
         with tools.chdir("sources"):
-            self.output.info('Files are copied via make/pkg-config')
             make_install_cmd = self.get_make_install_cmd()
-            self.output.info('Running command: ' + make_install_cmd)
             self.run(make_install_cmd)
 
         if self.options.shared and self.settings.compiler != "Visual Studio":
