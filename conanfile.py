@@ -9,7 +9,7 @@ import os
 
 class BotanConan(ConanFile):
     name = 'botan'
-    version = '2.1.0'
+    version = '2.7.0'
     url = "https://github.com/bincrafters/conan-botan"
     license = "BSD 2-clause"
     exports = ["LICENSE.md"]
@@ -58,9 +58,9 @@ class BotanConan(ConanFile):
             self.check_cxx_abi_settings()
 
     def source(self):
-        source_url = "https://botan.randombit.net/releases"
-        tools.get("{0}/Botan-{1}.tgz".format(source_url, self.version))
-        extracted_dir = "Botan-" + self.version
+        source_url = "https://github.com/randombit/botan/archive"
+        tools.get("{0}/{1}.tar.gz".format(source_url, self.version))
+        extracted_dir = "botan-" + self.version
         os.rename(extracted_dir, "sources")
 
     def build(self):
@@ -169,7 +169,7 @@ class BotanConan(ConanFile):
 
     def create_make_cmd(self):
         if self.settings.os == 'Windows':
-            self.patch_makefile_win()
+            #self.patch_makefile_win()
             make_cmd = self.get_nmake_cmd()
         else:
             make_cmd = self.get_make_cmd()
