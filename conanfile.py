@@ -58,9 +58,9 @@ class BotanConan(ConanFile):
             self.check_cxx_abi_settings()
 
     def source(self):
-        source_url = "https://botan.randombit.net/releases"
-        tools.get("{0}/Botan-{1}.tgz".format(source_url, self.version))
-        extracted_dir = "Botan-" + self.version
+        source_url = "https://github.com/randombit/botan/archive"
+        tools.get("{0}/{1}.tar.gz".format(source_url, self.version))
+        extracted_dir = "botan-" + self.version
         os.rename(extracted_dir, "sources")
 
     def build(self):
