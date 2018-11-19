@@ -9,7 +9,7 @@ import os
 
 class BotanConan(ConanFile):
     name = 'botan'
-    version = '2.7.0'
+    version = '2.8.0'
     url = "https://github.com/bincrafters/conan-botan"
     homepage = "https://github.com/randombit/botan"
     author = "Bincrafters <bincrafters@gmail.com>"
