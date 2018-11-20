@@ -22,7 +22,7 @@ class BotanConan(ConanFile):
         'bzip2': [True, False],
         'debug_info': [True, False],
         'openssl': [True, False],
-        'quiet':   [True, False],
+        'quiet': [True, False],
         'shared': [True, False],
         'single_amalgamation': [True, False],
         'sqlite3': [True, False],
@@ -126,29 +126,40 @@ class BotanConan(ConanFile):
 
         botan_abi = ' '.join(botan_abi_flags) if botan_abi_flags else ' '
 
-        if self.options.single_amalgamation: self.options.amalgamation = True
+        if self.options.single_amalgamation:
+            self.options.amalgamation = True
 
         build_flags = []
 
-        if self.options.amalgamation: build_flags.append('--amalgamation')
+        if self.options.amalgamation:
+            build_flags.append('--amalgamation')
 
-        if self.options.single_amalgamation: build_flags.append('--single-amalgamation-file')
+        if self.options.single_amalgamation:
+            build_flags.append('--single-amalgamation-file')
 
-        if self.options.bzip2: build_flags.append('--with-bzip2')
+        if self.options.bzip2:
+            build_flags.append('--with-bzip2')
 
-        if self.options.openssl: build_flags.append('--with-openssl')
+        if self.options.openssl:
+            build_flags.append('--with-openssl')
 
-        if self.options.quiet: build_flags.append('--quiet')
+        if self.options.quiet:
+            build_flags.append('--quiet')
 
-        if self.options.sqlite3: build_flags.append('--with-sqlite3')
+        if self.options.sqlite3:
+            build_flags.append('--with-sqlite3')
 
-        if self.options.zlib: build_flags.append('--with-zlib')
+        if self.options.zlib:
+            build_flags.append('--with-zlib')
 
-        if self.options.debug_info: build_flags.append('--with-debug-info')
+        if self.options.debug_info:
+            build_flags.append('--with-debug-info')
 
-        if str(self.settings.build_type).lower() == 'debug': build_flags.append('--debug-mode')
+        if str(self.settings.build_type).lower() == 'debug':
+            build_flags.append('--debug-mode')
 
-        if not self.options.shared: build_flags.append('--disable-shared')
+        if not self.options.shared:
+            build_flags.append('--disable-shared')
 
         if self._is_msvc2013:
             build_flags.append('--ack-vc2013-deprecated')
@@ -163,14 +174,14 @@ class BotanConan(ConanFile):
                          ' --prefix={prefix}'
                          ' --os={os}'
                          ' {build_flags}').format(
-                          python_call=call_python,
-                          abi=botan_abi,
-                          compiler=botan_compiler,
-                          cpu=self.settings.arch,
-                          prefix=self.package_folder,
-                          os=self._botan_os,
-                          build_flags=' '.join(build_flags),
-                      )
+            python_call=call_python,
+            abi=botan_abi,
+            compiler=botan_compiler,
+            cpu=self.settings.arch,
+            prefix=self.package_folder,
+            os=self._botan_os,
+            build_flags=' '.join(build_flags),
+        )
 
         return configure_cmd
 
@@ -203,10 +214,10 @@ class BotanConan(ConanFile):
                     ' make'
                     ' {quiet}'
                     ' -j{cpucount} 1>&1').format(
-                        ldflags=make_ldflags,
-                        quiet=botan_quiet,
-                        cpucount=cpu_count()
-                    )
+            ldflags=make_ldflags,
+            quiet=botan_quiet,
+            cpucount=cpu_count()
+        )
         return make_cmd
 
     @property
