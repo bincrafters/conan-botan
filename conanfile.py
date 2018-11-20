@@ -106,6 +106,10 @@ class BotanConan(ConanFile):
                 "Android": "linux",
                 "iOS": "ios"}.get(str(self.settings.os))
 
+    @property
+    def _is_msvc2013(self):
+        return self.settings.compiler == "Visual Studio" and self.settings.compiler.version == "12"
+
     def create_configure_cmd(self):
         if self.settings.compiler in ('clang', 'apple-clang'):
             botan_compiler = 'clang'
@@ -150,6 +154,9 @@ class BotanConan(ConanFile):
         if str(self.settings.build_type).lower() == 'debug': build_flags.append('--debug-mode')
 
         if not self.options.shared: build_flags.append('--disable-shared')
+
+        if self._is_msvc2013:
+            build_flags.append('--ack-vc2013-deprecated')
 
         call_python = 'python' if self.settings.os == 'Windows' else ''
 
