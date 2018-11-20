@@ -115,7 +115,7 @@ class BotanConan(ConanFile):
 
         botan_abi_flags = []
 
-        if self.is_linux_clang_libcxx():
+        if self._is_linux_clang_libcxx:
             botan_abi_flags.extend(["-stdlib=libc++", "-lc++abi"])
 
         if botan_compiler in ['clang', 'apple-clang', 'gcc']:
