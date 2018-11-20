@@ -92,6 +92,20 @@ class BotanConan(ConanFile):
         self.cpp_info.bindirs = ['lib', 'bin']
         self.cpp_info.includedirs = ['include/botan-2']
 
+    @property
+    def _is_mingw_windows(self):
+        return self.settings.os == "Windows" and self.settings.compiler == "gcc" and os.name == "nt"
+
+    @property
+    def _botan_os(self):
+        if self._is_mingw_windows:
+            return "mingw"
+        return {"Windows": "windows",
+                "Linux": "linux",
+                "Macos": "darwin",
+                "Android": "linux",
+                "iOS": "ios"}.get(str(self.settings.os))
+
     def create_configure_cmd(self):
         if self.settings.compiler in ('clang', 'apple-clang'):
             botan_compiler = 'clang'
@@ -145,12 +159,14 @@ class BotanConan(ConanFile):
                          ' --cc={compiler}'
                          ' --cpu={cpu}'
                          ' --prefix={prefix}'
+                         ' --os={os}'
                          ' {build_flags}').format(
                           python_call=call_python,
                           abi=botan_abi,
                           compiler=botan_compiler,
                           cpu=self.settings.arch,
                           prefix=self.package_folder,
+                          os=self._botan_os,
                           build_flags=' '.join(build_flags),
                       )
 
