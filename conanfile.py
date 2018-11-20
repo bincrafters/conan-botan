@@ -211,7 +211,7 @@ class BotanConan(ConanFile):
 
     @property
     def _make_program(self):
-        return os.getenv("CONAN_MAKE_PROGRAM") or "make"
+        return tools.get_env("CONAN_MAKE_PROGRAM", tools.which("make") or tools.which('mingw32-make'))
 
     @property
     def _gnumake_cmd(self):
