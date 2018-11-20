@@ -210,16 +210,21 @@ class BotanConan(ConanFile):
                 '"compiler.libcxx=libc++"')
 
     @property
+    def _make_program(self):
+        return os.getenv("CONAN_MAKE_PROGRAM") or "make"
+
+    @property
     def _gnumake_cmd(self):
         make_ldflags = 'LDFLAGS=-lc++abi' if self._is_linux_clang_libcxx else ''
 
         botan_quiet = '--quiet' if self.options.quiet else ''
 
         make_cmd = ('{ldflags}'
-                    ' make'
+                    ' {make}'
                     ' {quiet}'
                     ' -j{cpucount}').format(
             ldflags=make_ldflags,
+            make=self._make_program,
             quiet=botan_quiet,
             cpucount=cpu_count()
         )
@@ -237,7 +242,7 @@ class BotanConan(ConanFile):
             vcvars = tools.vcvars_command(self.settings)
             make_install_cmd = vcvars + ' && nmake install'
         else:
-            make_install_cmd = 'make install'
+            make_install_cmd = '{make} install'.format(make=self._make_program)
         return make_install_cmd
 
     @property
