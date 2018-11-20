@@ -28,17 +28,15 @@ class BotanConan(ConanFile):
         'sqlite3': [True, False],
         'zlib': [True, False],
     }
-    default_options = (
-        'amalgamation=True',
-        'bzip2=False',
-        'debug_info=False',
-        'openssl=False',
-        'quiet=True',
-        'shared=True',
-        'single_amalgamation=False',
-        'sqlite3=False',
-        'zlib=False',
-    )
+    default_options = {'amalgamation': True,
+                       'bzip2': False,
+                       'debug_info': False,
+                       'openssl': False,
+                       'quiet': True,
+                       'shared': True,
+                       'single_amalgamation': False,
+                       'sqlite3': False,
+                       'zlib': False}
 
     def requirements(self):
         if self.options.bzip2:
