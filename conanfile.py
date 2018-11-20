@@ -187,7 +187,7 @@ class BotanConan(ConanFile):
 
     @property
     def _make_cmd(self):
-        return self._nmake_cmd if self.settings.os == 'Windows' else self._gnumake_cmd
+        return self._nmake_cmd if self.settings.compiler == 'Visual Studio' else self._gnumake_cmd
 
     def check_cxx_abi_settings(self):
         compiler = self.settings.compiler
@@ -228,7 +228,7 @@ class BotanConan(ConanFile):
 
     @property
     def _make_install_cmd(self):
-        if self.settings.os == 'Windows':
+        if self.settings.compiler == 'Visual Studio':
             vcvars = tools.vcvars_command(self.settings)
             make_install_cmd = vcvars + ' && nmake install'
         else:
