@@ -164,6 +164,9 @@ class BotanConan(ConanFile):
         if self._is_msvc2013:
             build_flags.append('--ack-vc2013-deprecated')
 
+        if self.settings.compiler == 'Visual Studio':
+            build_flags.append('--msvc_runtime=%s' % str(self.settings.compiler.runtime))
+
         call_python = 'python' if self.settings.os == 'Windows' else ''
 
         configure_cmd = ('{python_call} ./configure.py'
