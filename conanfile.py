@@ -187,7 +187,7 @@ class BotanConan(ConanFile):
 
     @property
     def _make_cmd(self):
-        return self._nmake_cmd if self.settings.os == 'Windows' else self._make_cmd
+        return self._nmake_cmd if self.settings.os == 'Windows' else self._gnumake_cmd
 
     def check_cxx_abi_settings(self):
         compiler = self.settings.compiler
@@ -205,7 +205,7 @@ class BotanConan(ConanFile):
                 '"compiler.libcxx=libc++"')
 
     @property
-    def _make_cmd(self):
+    def _gnumake_cmd(self):
         make_ldflags = 'LDFLAGS=-lc++abi' if self._is_linux_clang_libcxx else ''
 
         botan_quiet = '--quiet' if self.options.quiet else ''
