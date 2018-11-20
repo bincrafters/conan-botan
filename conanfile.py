@@ -61,17 +61,13 @@ class BotanConan(ConanFile):
 
     def build(self):
         with tools.chdir('sources'):
-            configure_cmd = self.create_configure_cmd()
-            self.run(configure_cmd)
-
-            make_cmd = self.create_make_cmd()
-            self.run(make_cmd)
+            self.run(self._configure_cmd)
+            self.run(self._make_cmd)
 
     def package(self):
         self.copy(pattern="license.txt", dst="licenses", src="sources")
         with tools.chdir("sources"):
-            make_install_cmd = self.get_make_install_cmd()
-            self.run(make_install_cmd)
+            self.run(self._make_install_cmd)
 
         if self.options.shared and self.settings.compiler != "Visual Studio":
             os.unlink(os.path.join(self.package_folder, 'lib', 'libbotan-2.a'))
@@ -110,7 +106,8 @@ class BotanConan(ConanFile):
     def _is_msvc2013(self):
         return self.settings.compiler == "Visual Studio" and self.settings.compiler.version == "12"
 
-    def create_configure_cmd(self):
+    @property
+    def _configure_cmd(self):
         if self.settings.compiler in ('clang', 'apple-clang'):
             botan_compiler = 'clang'
         elif self.settings.compiler == 'gcc':
@@ -179,8 +176,9 @@ class BotanConan(ConanFile):
 
         return configure_cmd
 
-    def create_make_cmd(self):
-        return self.get_nmake_cmd() if self.settings.os == 'Windows' else self.get_make_cmd()
+    @property
+    def _make_cmd(self):
+        return self._nmake_cmd if self.settings.os == 'Windows' else self._make_cmd
 
     def check_cxx_abi_settings(self):
         compiler = self.settings.compiler
@@ -197,12 +195,9 @@ class BotanConan(ConanFile):
                 'or '
                 '"compiler.libcxx=libc++"')
 
-    def get_make_cmd(self):
-
-        if self.is_linux_clang_libcxx():
-            make_ldflags = 'LDFLAGS=-lc++abi'
-        else:
-            make_ldflags = ''
+    @property
+    def _make_cmd(self):
+        make_ldflags = 'LDFLAGS=-lc++abi' if self._is_linux_clang_libcxx else ''
 
         botan_quiet = '--quiet' if self.options.quiet else ''
 
@@ -216,12 +211,14 @@ class BotanConan(ConanFile):
                     )
         return make_cmd
 
-    def get_nmake_cmd(self):
+    @property
+    def _nmake_cmd(self):
         vcvars = tools.vcvars_command(self.settings)
         make_cmd = vcvars + ' && nmake'
         return make_cmd
 
-    def get_make_install_cmd(self):
+    @property
+    def _make_install_cmd(self):
         if self.settings.os == 'Windows':
             vcvars = tools.vcvars_command(self.settings)
             make_install_cmd = vcvars + ' && nmake install'
@@ -229,7 +226,8 @@ class BotanConan(ConanFile):
             make_install_cmd = 'make install'
         return make_install_cmd
 
-    def is_linux_clang_libcxx(self):
+    @property
+    def _is_linux_clang_libcxx(self):
         return (
             self.settings.os == 'Linux' and
             self.settings.compiler == 'clang' and
