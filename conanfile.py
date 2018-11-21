@@ -67,9 +67,6 @@ class BotanConan(ConanFile):
         with tools.chdir("sources"):
             self.run(self._make_install_cmd)
 
-        if self.options.shared and self.settings.compiler != "Visual Studio":
-            os.unlink(os.path.join(self.package_folder, 'lib', 'libbotan-2.a'))
-
     def package_info(self):
         if self.settings.compiler == 'Visual Studio':
             self.cpp_info.libs.append('botan')
@@ -168,10 +165,15 @@ class BotanConan(ConanFile):
         if self._is_msvc2013:
             build_flags.append('--ack-vc2013-deprecated')
 
+        if self._is_mingw_windows:
+            build_flags.append('--without-stack-protector')
+
         if self.settings.compiler == 'Visual Studio':
             build_flags.append('--msvc-runtime=%s' % str(self.settings.compiler.runtime))
 
         call_python = 'python' if self.settings.os == 'Windows' else ''
+
+        prefix = tools.unix_path(self.package_folder) if self._is_mingw_windows else self.package_folder
 
         configure_cmd = ('{python_call} ./configure.py'
                          ' --distribution-info="Conan"'
@@ -185,7 +187,7 @@ class BotanConan(ConanFile):
             abi=botan_abi,
             compiler=botan_compiler,
             cpu=self.settings.arch,
-            prefix=self.package_folder,
+            prefix=prefix,
             os=self._botan_os,
             build_flags=' '.join(build_flags),
         )
