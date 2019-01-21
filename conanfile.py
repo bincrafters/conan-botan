@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 from multiprocessing import cpu_count
 from conans import ConanFile, tools
 from conans.errors import ConanException
-import os
 
 
 class BotanConan(ConanFile):
@@ -183,14 +183,13 @@ class BotanConan(ConanFile):
                          ' --prefix={prefix}'
                          ' --os={os}'
                          ' {build_flags}').format(
-            python_call=call_python,
-            abi=botan_abi,
-            compiler=botan_compiler,
-            cpu=self.settings.arch,
-            prefix=prefix,
-            os=self._botan_os,
-            build_flags=' '.join(build_flags),
-        )
+                             python_call=call_python,
+                             abi=botan_abi,
+                             compiler=botan_compiler,
+                             cpu=self.settings.arch,
+                             prefix=prefix,
+                             os=self._botan_os,
+                             build_flags=' '.join(build_flags))
 
         return configure_cmd
 
@@ -227,11 +226,10 @@ class BotanConan(ConanFile):
                     ' {make}'
                     ' {quiet}'
                     ' -j{cpucount}').format(
-            ldflags=make_ldflags,
-            make=self._make_program,
-            quiet=botan_quiet,
-            cpucount=cpu_count()
-        )
+                        ldflags=make_ldflags,
+                        make=self._make_program,
+                        quiet=botan_quiet,
+                        cpucount=cpu_count())
         return make_cmd
 
     @property
