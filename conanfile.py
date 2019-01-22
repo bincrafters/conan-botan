@@ -24,6 +24,7 @@ class BotanConan(ConanFile):
         'openssl': [True, False],
         'quiet': [True, False],
         'shared': [True, False],
+        'fPIC': [True, False],
         'single_amalgamation': [True, False],
         'sqlite3': [True, False],
         'zlib': [True, False],
@@ -52,6 +53,9 @@ class BotanConan(ConanFile):
     def config_options(self):
         if self.settings.compiler != 'Visual Studio':
             self.check_cxx_abi_settings()
+
+        if self.settings.os == "Windows":
+            del self.options.fPIC
 
     def source(self):
         tools.get("{0}/archive/{1}.tar.gz".format(self.homepage, self.version))
@@ -119,6 +123,9 @@ class BotanConan(ConanFile):
             self.options.amalgamation = True
 
         build_flags = []
+
+        if self.options.fPIC:
+            build_flags.append('--cxxflags=-fPIC')
 
         if self.options.amalgamation:
             build_flags.append('--amalgamation')
