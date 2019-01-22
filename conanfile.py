@@ -137,7 +137,7 @@ class BotanConan(ConanFile):
 
         build_flags = []
 
-        if self.settigngs.os != "Windows" and self.options.fPIC:
+        if self.settings.os != "Windows" and self.options.fPIC:
             build_flags.append('--cxxflags=-fPIC')
 
         if self.options.amalgamation:
