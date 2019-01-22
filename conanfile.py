@@ -54,6 +54,9 @@ class BotanConan(ConanFile):
         if self.settings.compiler != 'Visual Studio':
             self.check_cxx_abi_settings()
 
+        if self.options.single_amalgamation:
+            self.options.amalgamation = True
+
         if self.settings.os == "Windows":
             del self.options.fPIC
 
@@ -131,9 +134,6 @@ class BotanConan(ConanFile):
                 botan_abi_flags.append('-m64')
 
         botan_abi = ' '.join(botan_abi_flags) if botan_abi_flags else ' '
-
-        if self.options.single_amalgamation:
-            self.options.amalgamation = True
 
         build_flags = []
 
