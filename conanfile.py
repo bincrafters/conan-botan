@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 from multiprocessing import cpu_count
 from conans import ConanFile, tools
 from conans.errors import ConanException
-import os
 
 
 class BotanConan(ConanFile):
@@ -24,6 +24,7 @@ class BotanConan(ConanFile):
         'openssl': [True, False],
         'quiet': [True, False],
         'shared': [True, False],
+        'fPIC': [True, False],
         'single_amalgamation': [True, False],
         'sqlite3': [True, False],
         'zlib': [True, False],
@@ -34,6 +35,7 @@ class BotanConan(ConanFile):
                        'openssl': False,
                        'quiet': True,
                        'shared': True,
+                       'fPIC': True,
                        'single_amalgamation': False,
                        'sqlite3': False,
                        'zlib': False}
@@ -51,6 +53,12 @@ class BotanConan(ConanFile):
     def config_options(self):
         if self.settings.compiler != 'Visual Studio':
             self.check_cxx_abi_settings()
+
+        if self.options.single_amalgamation:
+            self.options.amalgamation = True
+
+        if self.settings.os == "Windows":
+            del self.options.fPIC
 
     def source(self):
         tools.get("{0}/archive/{1}.tar.gz".format(self.homepage, self.version))
@@ -127,10 +135,10 @@ class BotanConan(ConanFile):
 
         botan_abi = ' '.join(botan_abi_flags) if botan_abi_flags else ' '
 
-        if self.options.single_amalgamation:
-            self.options.amalgamation = True
-
         build_flags = []
+
+        if self.settings.os != "Windows" and self.options.fPIC:
+            build_flags.append('--cxxflags=-fPIC')
 
         if self.options.amalgamation:
             build_flags.append('--amalgamation')
@@ -183,14 +191,13 @@ class BotanConan(ConanFile):
                          ' --prefix={prefix}'
                          ' --os={os}'
                          ' {build_flags}').format(
-            python_call=call_python,
-            abi=botan_abi,
-            compiler=botan_compiler,
-            cpu=self.settings.arch,
-            prefix=prefix,
-            os=self._botan_os,
-            build_flags=' '.join(build_flags),
-        )
+                             python_call=call_python,
+                             abi=botan_abi,
+                             compiler=botan_compiler,
+                             cpu=self.settings.arch,
+                             prefix=prefix,
+                             os=self._botan_os,
+                             build_flags=' '.join(build_flags))
 
         return configure_cmd
 
@@ -227,11 +234,10 @@ class BotanConan(ConanFile):
                     ' {make}'
                     ' {quiet}'
                     ' -j{cpucount}').format(
-            ldflags=make_ldflags,
-            make=self._make_program,
-            quiet=botan_quiet,
-            cpucount=cpu_count()
-        )
+                        ldflags=make_ldflags,
+                        make=self._make_program,
+                        quiet=botan_quiet,
+                        cpucount=cpu_count())
         return make_cmd
 
     @property
