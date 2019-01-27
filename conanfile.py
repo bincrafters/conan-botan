@@ -226,8 +226,9 @@ class BotanConan(ConanFile):
 
     def patch_makefile_win(self):
         # Todo: Remove this patch when fixed in trunk, Botan issue #210
-        if str.startswith(str(self.settings.compiler.runtime), "MT"):
-            tools.replace_in_file("Makefile", r"/MD", r"/MT")
+        if self.settings.compiler == "Visual Studio":
+            if str.startswith(str(self.settings.compiler.runtime), "MT"):
+                tools.replace_in_file("Makefile", r"/MD", r"/MT")
 
     def get_make_install_cmd(self):
         if self.settings.os == 'Windows':
