@@ -4,12 +4,12 @@
 import os
 from multiprocessing import cpu_count
 from conans import ConanFile, tools
-from conans.errors import ConanException
-
+from conans.errors import ConanException, ConanInvalidConfiguration
+from conans.model.version import Version
 
 class BotanConan(ConanFile):
     name = 'botan'
-    version = '2.8.0'
+    version = '2.9.0'
     url = "https://github.com/bincrafters/conan-botan"
     homepage = "https://github.com/randombit/botan"
     author = "Bincrafters <bincrafters@gmail.com>"
@@ -40,6 +40,12 @@ class BotanConan(ConanFile):
                        'sqlite3': False,
                        'zlib': False}
 
+    def configure(self):
+        if self.settings.os == "Windows" and \
+           self.settings.compiler == "Visual Studio" and \
+           Version(self.settings.compiler.version.value) < "14":
+               raise ConanInvalidConfiguration("Botan doesn't support MSVC < 14")
+ 
     def requirements(self):
         if self.options.bzip2:
             self.requires('bzip2/1.0.6@conan/stable')
@@ -110,10 +116,6 @@ class BotanConan(ConanFile):
                 "iOS": "ios"}.get(str(self.settings.os))
 
     @property
-    def _is_msvc2013(self):
-        return self.settings.compiler == "Visual Studio" and self.settings.compiler.version == "12"
-
-    @property
     def _configure_cmd(self):
         if self.settings.compiler in ('clang', 'apple-clang'):
             botan_compiler = 'clang'
@@ -169,10 +171,6 @@ class BotanConan(ConanFile):
 
         if not self.options.shared:
             build_flags.append('--disable-shared')
-
-        if self._is_msvc2013:
-            build_flags.append('--ack-vc2013-deprecated')
-
         if self._is_mingw_windows:
             build_flags.append('--without-stack-protector')
 
