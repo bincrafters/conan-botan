@@ -132,7 +132,8 @@ class BotanConan(ConanFile):
         if self._is_mingw_windows:
             build_flags.extend(["--os=mingw",
                                 "--link-method=hardlink",
-                                "--without-stack-protector"])
+                                "--without-stack-protector",
+                                "--cxxflags=-Wa,-mbig-obj"])
 
         if self.settings.os != "Windows" and self.options.fPIC:
             build_flags.append('--cxxflags=-fPIC')
