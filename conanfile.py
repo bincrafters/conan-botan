@@ -84,10 +84,7 @@ class BotanConan(ConanFile):
 
     def package_info(self):
         if self.settings.compiler == 'Visual Studio':
-            if self.settings.build_type == 'Debug':
-                self.cpp_info.libs.append('botand')
-            else:
-                self.cpp_info.libs.append('botan')
+            self.cpp_info.libs.append('botan')
         else:
             self.cpp_info.libs.extend(['botan-2', 'dl'])
             if self.settings.os == 'Linux':
@@ -126,6 +123,9 @@ class BotanConan(ConanFile):
 
         if self.settings.os != "Windows" and self.options.fPIC:
             build_flags.append('--cxxflags=-fPIC')
+
+        if self.settings.compiler == "Visual Studio":
+            build_flags.append('--cxxflags=-D_ENABLE_EXTENDED_ALIGNED_STORAGE')
 
         if self.options.amalgamation:
             build_flags.append('--amalgamation')
@@ -177,7 +177,7 @@ class BotanConan(ConanFile):
 
     def create_make_cmd(self):
         if self.settings.os == 'Windows':
-            #self.patch_makefile_win()
+            self.patch_makefile_win()
             make_cmd = self.get_nmake_cmd()
         else:
             make_cmd = self.get_make_cmd()
@@ -223,11 +223,6 @@ class BotanConan(ConanFile):
         return make_cmd
 
     def patch_makefile_win(self):
-        # Todo: Remove this patch when fixed in trunk, Botan issue #1297
-        tools.replace_in_file("Makefile",
-                              r"$(SCRIPTS_DIR)\install.py",
-                              r"python $(SCRIPTS_DIR)\install.py")
-
         # Todo: Remove this patch when fixed in trunk, Botan issue #210
         if str.startswith(str(self.settings.compiler.runtime), "MT"):
             tools.replace_in_file("Makefile", r"/MD", r"/MT")
