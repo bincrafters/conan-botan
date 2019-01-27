@@ -207,6 +207,13 @@ class BotanConan(ConanFile):
                 'or '
                 '"compiler.libcxx=libc++"')
 
+    @property
+    def _make(self):
+        make = tools.get_env("CONAN_MAKE_PROGRAM",
+                             tools.which("make") or tools.which('mingw32-make'))
+        if not make:
+            raise Exception("This package needs 'make' in the path to build")
+
     def get_make_cmd(self):
 
         if self.is_linux_clang_libcxx():
@@ -217,10 +224,11 @@ class BotanConan(ConanFile):
         botan_quiet = '--quiet' if self.options.quiet else ''
 
         make_cmd = ('{ldflags}'
-                    ' make'
+                    ' {make}'
                     ' {quiet}'
                     ' -j{cpucount}').format(
                         ldflags=make_ldflags,
+                        make=self._make,
                         quiet=botan_quiet,
                         cpucount=cpu_count()
                     )
@@ -242,7 +250,7 @@ class BotanConan(ConanFile):
             vcvars = tools.vcvars_command(self.settings)
             make_install_cmd = vcvars + ' && nmake install'
         else:
-            make_install_cmd = 'make install'
+            make_install_cmd = '%s install' % self._make
         return make_install_cmd
 
     def is_linux_clang_libcxx(self):
