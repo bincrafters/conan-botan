@@ -93,6 +93,8 @@ class BotanConan(ConanFile):
                 self.cpp_info.exelinkflags = ['-framework Security']
             if not self.options.shared:
                 self.cpp_info.libs.append('pthread')
+        if self.settings.os == "Windows":
+            self.cpp_info.libs.append("ws2_32")
 
         self.cpp_info.libdirs = ['lib']
         self.cpp_info.bindirs = ['lib', 'bin']
