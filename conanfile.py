@@ -219,7 +219,7 @@ class BotanConan(ConanFile):
         make_cmd = ('{ldflags}'
                     ' make'
                     ' {quiet}'
-                    ' -j{cpucount} 1>&1').format(
+                    ' -j{cpucount}').format(
                         ldflags=make_ldflags,
                         quiet=botan_quiet,
                         cpucount=cpu_count()
