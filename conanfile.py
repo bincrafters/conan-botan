@@ -213,6 +213,7 @@ class BotanConan(ConanFile):
                              tools.which("make") or tools.which('mingw32-make'))
         if not make:
             raise Exception("This package needs 'make' in the path to build")
+        return make
 
     def get_make_cmd(self):
 
