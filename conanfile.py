@@ -4,7 +4,7 @@
 import os
 from multiprocessing import cpu_count
 from conans import ConanFile, tools
-from conans.errors import ConanException
+from conans.errors import ConanException, ConanInvalidConfiguration
 
 
 class BotanConan(ConanFile):
@@ -60,6 +60,10 @@ class BotanConan(ConanFile):
         if self.settings.os == "Windows":
             del self.options.fPIC
 
+    def configure(self):
+        if self.options.shared and self._is_mingw_windows:
+            raise ConanInvalidConfiguration("Shared libs are not supported on mingw")
+
     def source(self):
         tools.get("{0}/archive/{1}.tar.gz".format(self.homepage, self.version))
         extracted_dir = "botan-" + self.version
@@ -79,17 +83,15 @@ class BotanConan(ConanFile):
             make_install_cmd = self.get_make_install_cmd()
             self.run(make_install_cmd)
 
-        if self.options.shared and self.settings.compiler != "Visual Studio":
-            os.unlink(os.path.join(self.package_folder, 'lib', 'libbotan-2.a'))
-
     def package_info(self):
-        if self.settings.os == "Windows":
+        if self.settings.compiler == "Visual Studio":
             self.cpp_info.libs.append('botan')
         else:
-            self.cpp_info.libs.extend(['botan-2', 'dl'])
+            self.cpp_info.libs.append('botan-2')
             if self.settings.os == 'Linux':
-                self.cpp_info.libs.append('rt')
+                self.cpp_info.libs.extend(['dl', 'rt'])
             if self.settings.os == 'Macos':
+                self.cpp_info.libs.append('dl')
                 self.cpp_info.exelinkflags = ['-framework Security']
             if not self.options.shared:
                 self.cpp_info.libs.append('pthread')
@@ -128,7 +130,9 @@ class BotanConan(ConanFile):
         build_flags = []
 
         if self._is_mingw_windows:
-            build_flags.append("--os=mingw")
+            build_flags.extend(["--os=mingw",
+                                "--link-method=hardlink",
+                                "--without-stack-protector"])
 
         if self.settings.os != "Windows" and self.options.fPIC:
             build_flags.append('--cxxflags=-fPIC')
@@ -163,8 +167,10 @@ class BotanConan(ConanFile):
         if str(self.settings.build_type).lower() == 'debug':
             build_flags.append('--debug-mode')
 
-        if not self.options.shared:
-            build_flags.append('--disable-shared')
+        if self.options.shared:
+            build_flags.append('--enable-shared-library')
+        else:
+            build_flags.append('--enable-static-library')
 
         call_python = 'python' if self.settings.os == 'Windows' else ''
 
