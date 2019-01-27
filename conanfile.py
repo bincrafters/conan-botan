@@ -105,7 +105,7 @@ class BotanConan(ConanFile):
             botan_compiler = 'clang'
         elif self.settings.compiler == 'gcc':
             botan_compiler = 'gcc'
-        else:
+        elif self.settings.compiler == "Visual Studio":
             botan_compiler = 'msvc'
 
         botan_abi_flags = []
@@ -178,7 +178,7 @@ class BotanConan(ConanFile):
         return configure_cmd
 
     def create_make_cmd(self):
-        if self.settings.os == 'Windows':
+        if self.settings.compiler == "Visual Studio":
             self.patch_makefile_win()
             make_cmd = self.get_nmake_cmd()
         else:
@@ -231,7 +231,7 @@ class BotanConan(ConanFile):
                 tools.replace_in_file("Makefile", r"/MD", r"/MT")
 
     def get_make_install_cmd(self):
-        if self.settings.os == 'Windows':
+        if self.settings.compiler == "Visual Studio":
             vcvars = tools.vcvars_command(self.settings)
             make_install_cmd = vcvars + ' && nmake install'
         else:
