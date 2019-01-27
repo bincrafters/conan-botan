@@ -83,7 +83,7 @@ class BotanConan(ConanFile):
             os.unlink(os.path.join(self.package_folder, 'lib', 'libbotan-2.a'))
 
     def package_info(self):
-        if self.settings.compiler == 'Visual Studio':
+        if self.settings.os == "Windows":
             self.cpp_info.libs.append('botan')
         else:
             self.cpp_info.libs.extend(['botan-2', 'dl'])
