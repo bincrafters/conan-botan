@@ -168,6 +168,9 @@ class BotanConan(ConanFile):
 
         call_python = 'python' if self.settings.os == 'Windows' else ''
 
+        prefix = self.package_folder
+        prefix = tools.unix_path(prefix) if self._is_mingw_windows else prefix
+
         configure_cmd = ('{python_call} ./configure.py'
                          ' --distribution-info="Conan"'
                          ' --cc-abi-flags="{abi}"'
@@ -179,7 +182,7 @@ class BotanConan(ConanFile):
                              abi=botan_abi,
                              compiler=botan_compiler,
                              cpu=self.settings.arch,
-                             prefix=self.package_folder,
+                             prefix=prefix,
                              build_flags=' '.join(build_flags))
 
         return configure_cmd
