@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 from multiprocessing import cpu_count
 from conans import ConanFile, tools
-from conans.errors import ConanException
-import os
+from conans.errors import ConanException, ConanInvalidConfiguration
 
 
 class BotanConan(ConanFile):
@@ -22,23 +22,23 @@ class BotanConan(ConanFile):
         'bzip2': [True, False],
         'debug_info': [True, False],
         'openssl': [True, False],
-        'quiet':   [True, False],
+        'quiet': [True, False],
         'shared': [True, False],
+        'fPIC': [True, False],
         'single_amalgamation': [True, False],
         'sqlite3': [True, False],
         'zlib': [True, False],
     }
-    default_options = (
-        'amalgamation=True',
-        'bzip2=False',
-        'debug_info=False',
-        'openssl=False',
-        'quiet=True',
-        'shared=True',
-        'single_amalgamation=False',
-        'sqlite3=False',
-        'zlib=False',
-    )
+    default_options = {'amalgamation': True,
+                       'bzip2': False,
+                       'debug_info': False,
+                       'openssl': False,
+                       'quiet': True,
+                       'shared': True,
+                       'fPIC': True,
+                       'single_amalgamation': False,
+                       'sqlite3': False,
+                       'zlib': False}
 
     def requirements(self):
         if self.options.bzip2:
@@ -53,6 +53,16 @@ class BotanConan(ConanFile):
     def config_options(self):
         if self.settings.compiler != 'Visual Studio':
             self.check_cxx_abi_settings()
+
+        if self.options.single_amalgamation:
+            self.options.amalgamation = True
+
+        if self.settings.os == "Windows":
+            del self.options.fPIC
+
+    def configure(self):
+        if self.options.shared and self._is_mingw_windows:
+            raise ConanInvalidConfiguration("Shared libs are not supported on mingw")
 
     def source(self):
         tools.get("{0}/archive/{1}.tar.gz".format(self.homepage, self.version))
@@ -73,34 +83,35 @@ class BotanConan(ConanFile):
             make_install_cmd = self.get_make_install_cmd()
             self.run(make_install_cmd)
 
-        if self.options.shared and self.settings.compiler != "Visual Studio":
-            os.unlink(os.path.join(self.package_folder, 'lib', 'libbotan-2.a'))
-
     def package_info(self):
-        if self.settings.compiler == 'Visual Studio':
-            if self.settings.build_type == 'Debug':
-                self.cpp_info.libs.append('botand')
-            else:
-                self.cpp_info.libs.append('botan')
+        if self.settings.compiler == "Visual Studio":
+            self.cpp_info.libs.append('botan')
         else:
-            self.cpp_info.libs.extend(['botan-2', 'dl'])
+            self.cpp_info.libs.append('botan-2')
             if self.settings.os == 'Linux':
-                self.cpp_info.libs.append('rt')
+                self.cpp_info.libs.extend(['dl', 'rt'])
             if self.settings.os == 'Macos':
+                self.cpp_info.libs.append('dl')
                 self.cpp_info.exelinkflags = ['-framework Security']
             if not self.options.shared:
                 self.cpp_info.libs.append('pthread')
+        if self.settings.os == "Windows":
+            self.cpp_info.libs.append("ws2_32")
 
         self.cpp_info.libdirs = ['lib']
         self.cpp_info.bindirs = ['lib', 'bin']
         self.cpp_info.includedirs = ['include/botan-2']
+
+    @property
+    def _is_mingw_windows(self):
+        return self.settings.os == "Windows" and self.settings.compiler == "gcc" and os.name == "nt"
 
     def create_configure_cmd(self):
         if self.settings.compiler in ('clang', 'apple-clang'):
             botan_compiler = 'clang'
         elif self.settings.compiler == 'gcc':
             botan_compiler = 'gcc'
-        else:
+        elif self.settings.compiler == "Visual Studio":
             botan_compiler = 'msvc'
 
         botan_abi_flags = []
@@ -116,31 +127,56 @@ class BotanConan(ConanFile):
 
         botan_abi = ' '.join(botan_abi_flags) if botan_abi_flags else ' '
 
-        if self.options.single_amalgamation: self.options.amalgamation = True
-
         build_flags = []
 
-        if self.options.amalgamation: build_flags.append('--amalgamation')
+        if self._is_mingw_windows:
+            build_flags.extend(["--os=mingw",
+                                "--link-method=hardlink",
+                                "--without-stack-protector",
+                                "--cxxflags=-Wa,-mbig-obj"])
 
-        if self.options.single_amalgamation: build_flags.append('--single-amalgamation-file')
+        if self.settings.os != "Windows" and self.options.fPIC:
+            build_flags.append('--cxxflags=-fPIC')
 
-        if self.options.bzip2: build_flags.append('--with-bzip2')
+        if self.settings.compiler == "Visual Studio":
+            build_flags.append('--cxxflags=-D_ENABLE_EXTENDED_ALIGNED_STORAGE')
 
-        if self.options.openssl: build_flags.append('--with-openssl')
+        if self.options.amalgamation:
+            build_flags.append('--amalgamation')
 
-        if self.options.quiet: build_flags.append('--quiet')
+        if self.options.single_amalgamation:
+            build_flags.append('--single-amalgamation-file')
 
-        if self.options.sqlite3: build_flags.append('--with-sqlite3')
+        if self.options.bzip2:
+            build_flags.append('--with-bzip2')
 
-        if self.options.zlib: build_flags.append('--with-zlib')
+        if self.options.openssl:
+            build_flags.append('--with-openssl')
 
-        if self.options.debug_info: build_flags.append('--with-debug-info')
+        if self.options.quiet:
+            build_flags.append('--quiet')
 
-        if str(self.settings.build_type).lower() == 'debug': build_flags.append('--debug-mode')
+        if self.options.sqlite3:
+            build_flags.append('--with-sqlite3')
 
-        if not self.options.shared: build_flags.append('--disable-shared')
+        if self.options.zlib:
+            build_flags.append('--with-zlib')
+
+        if self.options.debug_info:
+            build_flags.append('--with-debug-info')
+
+        if str(self.settings.build_type).lower() == 'debug':
+            build_flags.append('--debug-mode')
+
+        if self.options.shared:
+            build_flags.append('--enable-shared-library')
+        else:
+            build_flags.append('--enable-static-library')
 
         call_python = 'python' if self.settings.os == 'Windows' else ''
+
+        prefix = self.package_folder
+        prefix = tools.unix_path(prefix) if self._is_mingw_windows else prefix
 
         configure_cmd = ('{python_call} ./configure.py'
                          ' --distribution-info="Conan"'
@@ -149,19 +185,18 @@ class BotanConan(ConanFile):
                          ' --cpu={cpu}'
                          ' --prefix={prefix}'
                          ' {build_flags}').format(
-                          python_call=call_python,
-                          abi=botan_abi,
-                          compiler=botan_compiler,
-                          cpu=self.settings.arch,
-                          prefix=self.package_folder,
-                          build_flags=' '.join(build_flags),
-                      )
+                             python_call=call_python,
+                             abi=botan_abi,
+                             compiler=botan_compiler,
+                             cpu=self.settings.arch,
+                             prefix=prefix,
+                             build_flags=' '.join(build_flags))
 
         return configure_cmd
 
     def create_make_cmd(self):
-        if self.settings.os == 'Windows':
-            #self.patch_makefile_win()
+        if self.settings.compiler == "Visual Studio":
+            self.patch_makefile_win()
             make_cmd = self.get_nmake_cmd()
         else:
             make_cmd = self.get_make_cmd()
@@ -182,6 +217,14 @@ class BotanConan(ConanFile):
                 'or '
                 '"compiler.libcxx=libc++"')
 
+    @property
+    def _make(self):
+        make = tools.get_env("CONAN_MAKE_PROGRAM",
+                             tools.which("make") or tools.which('mingw32-make'))
+        if not make:
+            raise Exception("This package needs 'make' in the path to build")
+        return make
+
     def get_make_cmd(self):
 
         if self.is_linux_clang_libcxx():
@@ -192,10 +235,11 @@ class BotanConan(ConanFile):
         botan_quiet = '--quiet' if self.options.quiet else ''
 
         make_cmd = ('{ldflags}'
-                    ' make'
+                    ' {make}'
                     ' {quiet}'
-                    ' -j{cpucount} 1>&1').format(
+                    ' -j{cpucount}').format(
                         ldflags=make_ldflags,
+                        make=self._make,
                         quiet=botan_quiet,
                         cpucount=cpu_count()
                     )
@@ -207,21 +251,17 @@ class BotanConan(ConanFile):
         return make_cmd
 
     def patch_makefile_win(self):
-        # Todo: Remove this patch when fixed in trunk, Botan issue #1297
-        tools.replace_in_file("Makefile",
-                              r"$(SCRIPTS_DIR)\install.py",
-                              r"python $(SCRIPTS_DIR)\install.py")
-
         # Todo: Remove this patch when fixed in trunk, Botan issue #210
-        if str.startswith(str(self.settings.compiler.runtime), "MT"):
-            tools.replace_in_file("Makefile", r"/MD", r"/MT")
+        if self.settings.compiler == "Visual Studio":
+            if str.startswith(str(self.settings.compiler.runtime), "MT"):
+                tools.replace_in_file("Makefile", r"/MD", r"/MT")
 
     def get_make_install_cmd(self):
-        if self.settings.os == 'Windows':
+        if self.settings.compiler == "Visual Studio":
             vcvars = tools.vcvars_command(self.settings)
             make_install_cmd = vcvars + ' && nmake install'
         else:
-            make_install_cmd = 'make install'
+            make_install_cmd = '%s install' % self._make
         return make_install_cmd
 
     def is_linux_clang_libcxx(self):
