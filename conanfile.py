@@ -133,12 +133,12 @@ class BotanConan(ConanFile):
             elif self.settings.arch == "x86_64":
                 botan_abi_flags.append('-m64')
 
+        if self.settings.os != "Windows" and self.options.fPIC:
+            botan_abi_flags.append('-fPIC')
+
         botan_abi = ' '.join(botan_abi_flags) if botan_abi_flags else ' '
 
         build_flags = []
-
-        if self.settings.os != "Windows" and self.options.fPIC:
-            build_flags.append('--cxxflags=-fPIC')
 
         if self.options.amalgamation:
             build_flags.append('--amalgamation')
