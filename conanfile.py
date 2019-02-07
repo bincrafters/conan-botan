@@ -139,6 +139,13 @@ class BotanConan(ConanFile):
         if self.settings.os != "Windows" and self.options.fPIC:
             botan_extra_cxx_flags.append('-fPIC')
 
+        # we're piggy-backing this onto the ABI flags as a workaround:
+        # botan's configure script *replaces* it's own standard flags with
+        # whatever it gets from --cxxflags. Starting with Botan 2.10 there will
+        # be an --extra-cxxflags parameter that solves this.
+        # See here for more details:
+        #   https://github.com/bincrafters/community/issues/631
+        #   https://github.com/randombit/botan/issues/1826
         if botan_extra_cxx_flags:
             botan_abi_flags.extend(botan_extra_cxx_flags)
 
