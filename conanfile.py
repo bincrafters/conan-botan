@@ -137,6 +137,15 @@ class BotanConan(ConanFile):
         if self.settings.os != "Windows" and self.options.fPIC:
             botan_extra_cxx_flags.append('-fPIC')
 
+        # This is to work around botan's configure script that *replaces* its
+        # standard (platform dependent) flags in presence of an environment
+        # variable ${CXXFLAGS}. Most notably, this would build botan with
+        # disabled compiler optimizations.
+        environment_cxxflags = tools.get_env("CXXFLAGS")
+        if environment_cxxflags:
+            del os.environ["CXXFLAGS"]
+            botan_extra_cxx_flags.append(environment_cxxflags)
+
         # we're piggy-backing this onto the ABI flags as a workaround:
         # botan's configure script *replaces* it's own standard flags with
         # whatever it gets from --cxxflags. Starting with Botan 2.10 there will
