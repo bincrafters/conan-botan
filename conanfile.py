@@ -149,17 +149,8 @@ class BotanConan(ConanFile):
             del os.environ["CXXFLAGS"]
             botan_extra_cxx_flags.append(environment_cxxflags)
 
-        # we're piggy-backing this onto the ABI flags as a workaround:
-        # botan's configure script *replaces* it's own standard flags with
-        # whatever it gets from --cxxflags. Starting with Botan 2.10 there will
-        # be an --extra-cxxflags parameter that solves this.
-        # See here for more details:
-        #   https://github.com/bincrafters/community/issues/631
-        #   https://github.com/randombit/botan/issues/1826
-        if botan_extra_cxx_flags:
-            botan_abi_flags.extend(botan_extra_cxx_flags)
-
         botan_abi = ' '.join(botan_abi_flags) if botan_abi_flags else ' '
+        botan_cxx_extras = ' '.join(botan_extra_cxx_flags) if botan_extra_cxx_flags else ' '
 
         build_flags = []
 
@@ -205,6 +196,7 @@ class BotanConan(ConanFile):
         configure_cmd = ('{python_call} ./configure.py'
                          ' --distribution-info="Conan"'
                          ' --cc-abi-flags="{abi}"'
+                         ' --extra-cxxflags="{cxxflags}"'
                          ' --cc={compiler}'
                          ' --cpu={cpu}'
                          ' --prefix={prefix}'
@@ -212,6 +204,7 @@ class BotanConan(ConanFile):
                          ' {build_flags}').format(
                              python_call=call_python,
                              abi=botan_abi,
+                             cxxflags=botan_cxx_extras,
                              compiler=botan_compiler,
                              cpu=self.settings.arch,
                              prefix=prefix,
