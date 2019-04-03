@@ -7,9 +7,10 @@ from conans import ConanFile, tools
 from conans.errors import ConanException, ConanInvalidConfiguration
 from conans.model.version import Version
 
+
 class BotanConan(ConanFile):
     name = 'botan'
-    version = '2.9.0'
+    version = '2.10.0'
     url = "https://github.com/bincrafters/conan-botan"
     homepage = "https://github.com/randombit/botan"
     author = "Bincrafters <bincrafters@gmail.com>"
