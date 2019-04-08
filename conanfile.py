@@ -15,7 +15,7 @@ class BotanConan(ConanFile):
     homepage = "https://github.com/randombit/botan"
     author = "Bincrafters <bincrafters@gmail.com>"
     license = "BSD 2-clause"
-    exports = ["LICENSE.md"]
+    exports = ["LICENSE.md","2006b469c1d1038737c1afe908300fab87d50062.diff"]
     description = "Botan is a cryptography library written in C++11."
     settings = 'os', 'arch', 'compiler', 'build_type'
     options = {
@@ -71,6 +71,15 @@ class BotanConan(ConanFile):
         tools.get("{0}/archive/{1}.tar.gz".format(self.homepage, self.version))
         extracted_dir = "botan-" + self.version
         os.rename(extracted_dir, "sources")
+
+        # This patch is required to build the amalgamation build on Xcode 9 and
+        # before. It will (likely) be included in the next Botan release. Hence,
+        # we should be able to remove that for Botan 2.11.0 and beyond...
+        #
+        # See associated PR in Botan:
+        #   https://github.com/randombit/botan/pull/1884
+        with tools.chdir("sources"):
+            tools.patch(patch_file='../2006b469c1d1038737c1afe908300fab87d50062.diff')
 
     def build(self):
         with tools.chdir('sources'):

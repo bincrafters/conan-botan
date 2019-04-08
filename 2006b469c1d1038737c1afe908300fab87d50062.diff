@@ -1,0 +1,12 @@
+diff --git a/src/lib/x509/certstor_system_macos/certstor_macos.cpp b/src/lib/x509/certstor_system_macos/certstor_macos.cpp
+index 3a3652ae1..5672385ae 100644
+--- a/src/lib/x509/certstor_system_macos/certstor_macos.cpp
++++ b/src/lib/x509/certstor_system_macos/certstor_macos.cpp
+@@ -11,6 +11,7 @@
+ #include <algorithm>
+ #include <array>
+ 
++#define __ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES 0
+ #include <CoreFoundation/CoreFoundation.h>
+ #include <CoreServices/CoreServices.h>
+ 
