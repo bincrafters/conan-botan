@@ -15,7 +15,7 @@ class BotanConan(ConanFile):
     homepage = "https://github.com/randombit/botan"
     author = "Bincrafters <bincrafters@gmail.com>"
     license = "BSD 2-clause"
-    exports = ["LICENSE.md"]
+    exports = ["LICENSE.md","2006b469c1d1038737c1afe908300fab87d50062.diff"]
     description = "Botan is a cryptography library written in C++11."
     settings = 'os', 'arch', 'compiler', 'build_type'
     options = {
@@ -72,6 +72,15 @@ class BotanConan(ConanFile):
         extracted_dir = "botan-" + self.version
         os.rename(extracted_dir, "sources")
 
+        # This patch is required to build the amalgamation build on Xcode 9 and
+        # before. It will (likely) be included in the next Botan release. Hence,
+        # we should be able to remove that for Botan 2.11.0 and beyond...
+        #
+        # See associated PR in Botan:
+        #   https://github.com/randombit/botan/pull/1884
+        with tools.chdir("sources"):
+            tools.patch(patch_file='../2006b469c1d1038737c1afe908300fab87d50062.diff')
+
     def build(self):
         with tools.chdir('sources'):
             self.run(self._configure_cmd)
@@ -92,7 +101,7 @@ class BotanConan(ConanFile):
             if self.settings.os == 'Linux':
                 self.cpp_info.libs.append('rt')
             if self.settings.os == 'Macos':
-                self.cpp_info.exelinkflags = ['-framework Security']
+                self.cpp_info.exelinkflags = ['-framework Security', '-framework CoreFoundation']
             if not self.options.shared:
                 self.cpp_info.libs.append('pthread')
         if self.settings.os == "Windows":
@@ -149,17 +158,8 @@ class BotanConan(ConanFile):
             del os.environ["CXXFLAGS"]
             botan_extra_cxx_flags.append(environment_cxxflags)
 
-        # we're piggy-backing this onto the ABI flags as a workaround:
-        # botan's configure script *replaces* it's own standard flags with
-        # whatever it gets from --cxxflags. Starting with Botan 2.10 there will
-        # be an --extra-cxxflags parameter that solves this.
-        # See here for more details:
-        #   https://github.com/bincrafters/community/issues/631
-        #   https://github.com/randombit/botan/issues/1826
-        if botan_extra_cxx_flags:
-            botan_abi_flags.extend(botan_extra_cxx_flags)
-
         botan_abi = ' '.join(botan_abi_flags) if botan_abi_flags else ' '
+        botan_cxx_extras = ' '.join(botan_extra_cxx_flags) if botan_extra_cxx_flags else ' '
 
         build_flags = []
 
@@ -205,6 +205,7 @@ class BotanConan(ConanFile):
         configure_cmd = ('{python_call} ./configure.py'
                          ' --distribution-info="Conan"'
                          ' --cc-abi-flags="{abi}"'
+                         ' --extra-cxxflags="{cxxflags}"'
                          ' --cc={compiler}'
                          ' --cpu={cpu}'
                          ' --prefix={prefix}'
@@ -212,6 +213,7 @@ class BotanConan(ConanFile):
                          ' {build_flags}').format(
                              python_call=call_python,
                              abi=botan_abi,
+                             cxxflags=botan_cxx_extras,
                              compiler=botan_compiler,
                              cpu=self.settings.arch,
                              prefix=prefix,
