@@ -118,6 +118,15 @@ class BotanConan(ConanFile):
                 "Android": "linux",
                 "iOS": "ios"}.get(str(self.settings.os))
 
+    def _dependency_build_flags(self, dependency):
+        # Since botan has a custom build system, we need to specifically inject
+        # these build parameters so that it picks up the correct dependencies.
+        dep_cpp_info = self.deps_cpp_info[dependency]
+        return \
+            ['--with-external-includedir={}'.format(include_path) for include_path in dep_cpp_info.include_paths] + \
+            ['--with-external-libdir={}'.format(lib_path) for lib_path in dep_cpp_info.lib_paths] + \
+            ['--define-build-macro={}'.format(define) for define in dep_cpp_info.defines]
+
     @property
     def _configure_cmd(self):
         if self.settings.compiler in ('clang', 'apple-clang'):
@@ -129,6 +138,7 @@ class BotanConan(ConanFile):
 
         botan_abi_flags = []
         botan_extra_cxx_flags = []
+        build_flags = []
 
         if self._is_linux_clang_libcxx:
             botan_abi_flags.extend(["-stdlib=libc++", "-lc++abi"])
@@ -151,11 +161,6 @@ class BotanConan(ConanFile):
             del os.environ["CXXFLAGS"]
             botan_extra_cxx_flags.append(environment_cxxflags)
 
-        botan_abi = ' '.join(botan_abi_flags) if botan_abi_flags else ' '
-        botan_cxx_extras = ' '.join(botan_extra_cxx_flags) if botan_extra_cxx_flags else ' '
-
-        build_flags = []
-
         if self.options.amalgamation:
             build_flags.append('--amalgamation')
 
@@ -167,18 +172,22 @@ class BotanConan(ConanFile):
 
         if self.options.bzip2:
             build_flags.append('--with-bzip2')
+            build_flags.extend(self._dependency_build_flags("bzip2"))
 
         if self.options.openssl:
             build_flags.append('--with-openssl')
+            build_flags.extend(self._dependency_build_flags("OpenSSL"))
 
         if self.options.quiet:
             build_flags.append('--quiet')
 
         if self.options.sqlite3:
             build_flags.append('--with-sqlite3')
+            build_flags.extend(self._dependency_build_flags("sqlite3"))
 
         if self.options.zlib:
             build_flags.append('--with-zlib')
+            build_flags.extend(self._dependency_build_flags("zlib"))
 
         if self.options.debug_info:
             build_flags.append('--with-debug-info')
@@ -197,6 +206,9 @@ class BotanConan(ConanFile):
         call_python = 'python' if self.settings.os == 'Windows' else ''
 
         prefix = tools.unix_path(self.package_folder) if self._is_mingw_windows else self.package_folder
+
+        botan_abi = ' '.join(botan_abi_flags) if botan_abi_flags else ' '
+        botan_cxx_extras = ' '.join(botan_extra_cxx_flags) if botan_extra_cxx_flags else ' '
 
         configure_cmd = ('{python_call} ./configure.py'
                          ' --distribution-info="Conan"'
