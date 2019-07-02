@@ -29,6 +29,7 @@ class BotanConan(ConanFile):
         'single_amalgamation': [True, False],
         'sqlite3': [True, False],
         'zlib': [True, False],
+        'boost': [True, False],
         'system_cert_bundle': "ANY"
     }
     default_options = {'amalgamation': True,
@@ -41,6 +42,7 @@ class BotanConan(ConanFile):
                        'single_amalgamation': False,
                        'sqlite3': False,
                        'zlib': False,
+                       'boost': False,
                        'system_cert_bundle': None}
 
     def configure(self):
@@ -48,7 +50,13 @@ class BotanConan(ConanFile):
            self.settings.compiler == "Visual Studio" and \
            Version(self.settings.compiler.version.value) < "14":
                raise ConanInvalidConfiguration("Botan doesn't support MSVC < 14")
- 
+
+        if self.options.boost:
+            self.options["boost"].add("shared=False")
+            self.options["boost"].add("magic_autolink=False")
+            self.options["boost"].add("without_coroutine=False")
+            self.options["boost"].add("without_system=False")
+
     def requirements(self):
         if self.options.bzip2:
             self.requires('bzip2/1.0.6@conan/stable')
@@ -58,6 +66,8 @@ class BotanConan(ConanFile):
             self.requires('zlib/1.2.11@conan/stable')
         if self.options.sqlite3:
             self.requires('sqlite3/3.25.3@bincrafters/stable')
+        if self.options.boost:
+            self.requires("boost/1.69.0@conan/stable")
 
     def config_options(self):
         if self.settings.compiler != 'Visual Studio':
@@ -188,6 +198,20 @@ class BotanConan(ConanFile):
         if self.options.zlib:
             build_flags.append('--with-zlib')
             build_flags.extend(self._dependency_build_flags("zlib"))
+
+        if self.options.boost:
+            build_flags.append('--with-boost')
+            build_flags.extend(self._dependency_build_flags("boost"))
+            # required boost libraries are listed in Botan's src/utils/boost/info.txt
+            # under the <libs></libs> tag...
+            # Note that boost_system is actually a header-only library as of
+            # boost 1.69. We are linking this for compatibility with older boost
+            # versions...
+            boost_system = [lib for lib in self.deps_cpp_info["boost"].libs if "boost_system" in lib]
+            if len(boost_system) != 1:
+                raise ConanException("did not find a comprehensive boost_system library name: " + str(boost_system))
+            boost_system_name = boost_system[0] + ".lib" if self.settings.os == "Windows" else boost_system[0]
+            build_flags.append('--boost-library-name={}'.format(boost_system_name))
 
         if self.options.debug_info:
             build_flags.append('--with-debug-info')
