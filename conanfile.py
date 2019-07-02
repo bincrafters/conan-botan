@@ -29,6 +29,7 @@ class BotanConan(ConanFile):
         'single_amalgamation': [True, False],
         'sqlite3': [True, False],
         'zlib': [True, False],
+        'system_cert_bundle': "ANY"
     }
     default_options = {'amalgamation': True,
                        'bzip2': False,
@@ -39,7 +40,8 @@ class BotanConan(ConanFile):
                        'fPIC': True,
                        'single_amalgamation': False,
                        'sqlite3': False,
-                       'zlib': False}
+                       'zlib': False,
+                       'system_cert_bundle': None}
 
     def configure(self):
         if self.settings.os == "Windows" and \
@@ -159,6 +161,9 @@ class BotanConan(ConanFile):
 
         if self.options.single_amalgamation:
             build_flags.append('--single-amalgamation-file')
+
+        if self.options.system_cert_bundle:
+            build_flags.append('--system-cert-bundle={}'.format(self.options.system_cert_bundle))
 
         if self.options.bzip2:
             build_flags.append('--with-bzip2')
