@@ -108,7 +108,7 @@ class BotanConan(ConanFile):
             if not self.options.shared:
                 self.cpp_info.libs.append('pthread')
         if self.settings.os == "Windows":
-            self.cpp_info.libs.append("ws2_32")
+            self.cpp_info.libs.extend(["ws2_32", "Crypt32"])
 
         self.cpp_info.libdirs = ['lib']
         self.cpp_info.bindirs = ['lib', 'bin']
