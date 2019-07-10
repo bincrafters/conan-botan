@@ -10,12 +10,12 @@ from conans.model.version import Version
 
 class BotanConan(ConanFile):
     name = 'botan'
-    version = '2.10.0'
+    version = '2.11.0'
     url = "https://github.com/bincrafters/conan-botan"
     homepage = "https://github.com/randombit/botan"
     author = "Bincrafters <bincrafters@gmail.com>"
     license = "BSD 2-clause"
-    exports = ["LICENSE.md","2006b469c1d1038737c1afe908300fab87d50062.diff"]
+    exports = ["LICENSE.md"]
     description = "Botan is a cryptography library written in C++11."
     settings = 'os', 'arch', 'compiler', 'build_type'
     options = {
@@ -29,6 +29,8 @@ class BotanConan(ConanFile):
         'single_amalgamation': [True, False],
         'sqlite3': [True, False],
         'zlib': [True, False],
+        'boost': [True, False],
+        'system_cert_bundle': "ANY"
     }
     default_options = {'amalgamation': True,
                        'bzip2': False,
@@ -39,14 +41,22 @@ class BotanConan(ConanFile):
                        'fPIC': True,
                        'single_amalgamation': False,
                        'sqlite3': False,
-                       'zlib': False}
+                       'zlib': False,
+                       'boost': False,
+                       'system_cert_bundle': None}
 
     def configure(self):
         if self.settings.os == "Windows" and \
            self.settings.compiler == "Visual Studio" and \
            Version(self.settings.compiler.version.value) < "14":
                raise ConanInvalidConfiguration("Botan doesn't support MSVC < 14")
- 
+
+        if self.options.boost:
+            self.options["boost"].add("shared=False")
+            self.options["boost"].add("magic_autolink=False")
+            self.options["boost"].add("without_coroutine=False")
+            self.options["boost"].add("without_system=False")
+
     def requirements(self):
         if self.options.bzip2:
             self.requires('bzip2/1.0.6@conan/stable')
@@ -56,6 +66,8 @@ class BotanConan(ConanFile):
             self.requires('zlib/1.2.11@conan/stable')
         if self.options.sqlite3:
             self.requires('sqlite3/3.25.3@bincrafters/stable')
+        if self.options.boost:
+            self.requires("boost/1.69.0@conan/stable")
 
     def config_options(self):
         if self.settings.compiler != 'Visual Studio':
@@ -71,15 +83,6 @@ class BotanConan(ConanFile):
         tools.get("{0}/archive/{1}.tar.gz".format(self.homepage, self.version))
         extracted_dir = "botan-" + self.version
         os.rename(extracted_dir, "sources")
-
-        # This patch is required to build the amalgamation build on Xcode 9 and
-        # before. It will (likely) be included in the next Botan release. Hence,
-        # we should be able to remove that for Botan 2.11.0 and beyond...
-        #
-        # See associated PR in Botan:
-        #   https://github.com/randombit/botan/pull/1884
-        with tools.chdir("sources"):
-            tools.patch(patch_file='../2006b469c1d1038737c1afe908300fab87d50062.diff')
 
     def build(self):
         with tools.chdir('sources'):
@@ -105,7 +108,7 @@ class BotanConan(ConanFile):
             if not self.options.shared:
                 self.cpp_info.libs.append('pthread')
         if self.settings.os == "Windows":
-            self.cpp_info.libs.append("ws2_32")
+            self.cpp_info.libs.extend(["ws2_32", "Crypt32"])
 
         self.cpp_info.libdirs = ['lib']
         self.cpp_info.bindirs = ['lib', 'bin']
@@ -125,6 +128,15 @@ class BotanConan(ConanFile):
                 "Android": "linux",
                 "iOS": "ios"}.get(str(self.settings.os))
 
+    def _dependency_build_flags(self, dependency):
+        # Since botan has a custom build system, we need to specifically inject
+        # these build parameters so that it picks up the correct dependencies.
+        dep_cpp_info = self.deps_cpp_info[dependency]
+        return \
+            ['--with-external-includedir={}'.format(include_path) for include_path in dep_cpp_info.include_paths] + \
+            ['--with-external-libdir={}'.format(lib_path) for lib_path in dep_cpp_info.lib_paths] + \
+            ['--define-build-macro={}'.format(define) for define in dep_cpp_info.defines]
+
     @property
     def _configure_cmd(self):
         if self.settings.compiler in ('clang', 'apple-clang'):
@@ -136,6 +148,7 @@ class BotanConan(ConanFile):
 
         botan_abi_flags = []
         botan_extra_cxx_flags = []
+        build_flags = []
 
         if self._is_linux_clang_libcxx:
             botan_abi_flags.extend(["-stdlib=libc++", "-lc++abi"])
@@ -158,31 +171,47 @@ class BotanConan(ConanFile):
             del os.environ["CXXFLAGS"]
             botan_extra_cxx_flags.append(environment_cxxflags)
 
-        botan_abi = ' '.join(botan_abi_flags) if botan_abi_flags else ' '
-        botan_cxx_extras = ' '.join(botan_extra_cxx_flags) if botan_extra_cxx_flags else ' '
-
-        build_flags = []
-
         if self.options.amalgamation:
             build_flags.append('--amalgamation')
 
         if self.options.single_amalgamation:
             build_flags.append('--single-amalgamation-file')
 
+        if self.options.system_cert_bundle:
+            build_flags.append('--system-cert-bundle={}'.format(self.options.system_cert_bundle))
+
         if self.options.bzip2:
             build_flags.append('--with-bzip2')
+            build_flags.extend(self._dependency_build_flags("bzip2"))
 
         if self.options.openssl:
             build_flags.append('--with-openssl')
+            build_flags.extend(self._dependency_build_flags("OpenSSL"))
 
         if self.options.quiet:
             build_flags.append('--quiet')
 
         if self.options.sqlite3:
             build_flags.append('--with-sqlite3')
+            build_flags.extend(self._dependency_build_flags("sqlite3"))
 
         if self.options.zlib:
             build_flags.append('--with-zlib')
+            build_flags.extend(self._dependency_build_flags("zlib"))
+
+        if self.options.boost:
+            build_flags.append('--with-boost')
+            build_flags.extend(self._dependency_build_flags("boost"))
+            # required boost libraries are listed in Botan's src/utils/boost/info.txt
+            # under the <libs></libs> tag...
+            # Note that boost_system is actually a header-only library as of
+            # boost 1.69. We are linking this for compatibility with older boost
+            # versions...
+            boost_system = [lib for lib in self.deps_cpp_info["boost"].libs if "boost_system" in lib]
+            if len(boost_system) != 1:
+                raise ConanException("did not find a comprehensive boost_system library name: " + str(boost_system))
+            boost_system_name = boost_system[0] + ".lib" if self.settings.os == "Windows" else boost_system[0]
+            build_flags.append('--boost-library-name={}'.format(boost_system_name))
 
         if self.options.debug_info:
             build_flags.append('--with-debug-info')
@@ -201,6 +230,9 @@ class BotanConan(ConanFile):
         call_python = 'python' if self.settings.os == 'Windows' else ''
 
         prefix = tools.unix_path(self.package_folder) if self._is_mingw_windows else self.package_folder
+
+        botan_abi = ' '.join(botan_abi_flags) if botan_abi_flags else ' '
+        botan_cxx_extras = ' '.join(botan_extra_cxx_flags) if botan_extra_cxx_flags else ' '
 
         configure_cmd = ('{python_call} ./configure.py'
                          ' --distribution-info="Conan"'
