@@ -30,6 +30,7 @@ class BotanConan(ConanFile):
         'sqlite3': [True, False],
         'zlib': [True, False],
         'boost': [True, False],
+        'enable_modules': "ANY",
         'system_cert_bundle': "ANY"
     }
     default_options = {'amalgamation': True,
@@ -43,6 +44,7 @@ class BotanConan(ConanFile):
                        'sqlite3': False,
                        'zlib': False,
                        'boost': False,
+                       'enable_modules': None,
                        'system_cert_bundle': None}
 
     def configure(self):
@@ -170,6 +172,10 @@ class BotanConan(ConanFile):
         if environment_cxxflags:
             del os.environ["CXXFLAGS"]
             botan_extra_cxx_flags.append(environment_cxxflags)
+
+        if self.options.enable_modules:
+            build_flags.append('--minimized-build')
+            build_flags.append('--enable-modules={}'.format(self.options.enable_modules))
 
         if self.options.amalgamation:
             build_flags.append('--amalgamation')
