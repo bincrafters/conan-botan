@@ -219,7 +219,7 @@ class BotanConan(ConanFile):
             boost_system_name = boost_system[0] + ".lib" if self.settings.os == "Windows" else boost_system[0]
             build_flags.append('--boost-library-name={}'.format(boost_system_name))
 
-        if self.options.debug_info:
+        if self.settings.build_type == 'RelWithDebInfo' or self.options.debug_info:
             build_flags.append('--with-debug-info')
 
         if str(self.settings.build_type).lower() == 'debug':
