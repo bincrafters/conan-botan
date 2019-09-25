@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-from multiprocessing import cpu_count
 from conans import ConanFile, tools
 from conans.errors import ConanException, ConanInvalidConfiguration
 from conans.model.version import Version
@@ -296,7 +295,7 @@ class BotanConan(ConanFile):
                         ldflags=make_ldflags,
                         make=self._make_program,
                         quiet=botan_quiet,
-                        cpucount=cpu_count())
+                        cpucount=tools.cpu_count())
         return make_cmd
 
     @property
