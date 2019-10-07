@@ -9,7 +9,7 @@ from conans.model.version import Version
 
 class BotanConan(ConanFile):
     name = 'botan'
-    version = '2.11.0'
+    version = '2.12.0'
     url = "https://github.com/bincrafters/conan-botan"
     homepage = "https://github.com/randombit/botan"
     author = "Bincrafters <bincrafters@gmail.com>"
@@ -224,8 +224,10 @@ class BotanConan(ConanFile):
         if str(self.settings.build_type).lower() == 'debug':
             build_flags.append('--debug-mode')
 
-        if not self.options.shared:
-            build_flags.append('--disable-shared')
+        build_targets = ["static"]
+        if self.options.shared:
+            build_targets.append("shared")
+
         if self._is_mingw_windows:
             build_flags.append('--without-stack-protector')
 
@@ -240,6 +242,7 @@ class BotanConan(ConanFile):
         botan_cxx_extras = ' '.join(botan_extra_cxx_flags) if botan_extra_cxx_flags else ' '
 
         configure_cmd = ('{python_call} ./configure.py'
+                         ' --build-targets={targets}'
                          ' --distribution-info="Conan"'
                          ' --cc-abi-flags="{abi}"'
                          ' --extra-cxxflags="{cxxflags}"'
@@ -249,6 +252,7 @@ class BotanConan(ConanFile):
                          ' --os={os}'
                          ' {build_flags}').format(
                              python_call=call_python,
+                             targets=",".join(build_targets),
                              abi=botan_abi,
                              cxxflags=botan_cxx_extras,
                              compiler=botan_compiler,
