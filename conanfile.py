@@ -228,9 +228,7 @@ class BotanConan(ConanFile):
         if str(self.settings.build_type).lower() == 'debug':
             build_flags.append('--debug-mode')
 
-        build_targets = ["static"]
-        if self.options.shared:
-            build_targets.append("shared")
+        build_targets = ["shared"] if self.options.shared else ["static"]
 
         if self._is_mingw_windows:
             build_flags.append('--without-stack-protector')
