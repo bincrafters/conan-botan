@@ -9,12 +9,12 @@ from conans.model.version import Version
 
 class BotanConan(ConanFile):
     name = 'botan'
-    version = '2.11.0'
+    version = '2.12.0'
     url = "https://github.com/bincrafters/conan-botan"
     homepage = "https://github.com/randombit/botan"
     author = "Bincrafters <bincrafters@gmail.com>"
     license = "BSD 2-clause"
-    exports = ["LICENSE.md"]
+    exports = ["LICENSE.md", "patches/*"]
     description = "Botan is a cryptography library written in C++11."
     settings = 'os', 'arch', 'compiler', 'build_type'
     options = {
@@ -58,6 +58,10 @@ class BotanConan(ConanFile):
             self.options["boost"].add("without_coroutine=False")
             self.options["boost"].add("without_system=False")
 
+    def build_requirements(self):
+        if self.settings.os == "Windows":
+            self.build_requires("jom_installer/1.1.2@bincrafters/stable")
+
     def requirements(self):
         if self.options.bzip2:
             self.requires('bzip2/1.0.6@conan/stable')
@@ -84,6 +88,14 @@ class BotanConan(ConanFile):
         tools.get("{0}/archive/{1}.tar.gz".format(self.homepage, self.version))
         extracted_dir = "botan-" + self.version
         os.rename(extracted_dir, "sources")
+
+        # This patch is required to build on GCC 4.9 for 32bits. It will
+        # (likely) be included in the next Botan release (2.12.1).
+        #
+        # See associated issue in Botan:
+        #   https://github.com/randombit/botan/issues/2139
+        with tools.chdir("sources"):
+            tools.patch(patch_file='../patches/db32722.patch')
 
     def build(self):
         with tools.chdir('sources'):
@@ -224,8 +236,8 @@ class BotanConan(ConanFile):
         if str(self.settings.build_type).lower() == 'debug':
             build_flags.append('--debug-mode')
 
-        if not self.options.shared:
-            build_flags.append('--disable-shared')
+        build_targets = ["shared"] if self.options.shared else ["static"]
+
         if self._is_mingw_windows:
             build_flags.append('--without-stack-protector')
 
@@ -240,6 +252,7 @@ class BotanConan(ConanFile):
         botan_cxx_extras = ' '.join(botan_extra_cxx_flags) if botan_extra_cxx_flags else ' '
 
         configure_cmd = ('{python_call} ./configure.py'
+                         ' --build-targets={targets}'
                          ' --distribution-info="Conan"'
                          ' --cc-abi-flags="{abi}"'
                          ' --extra-cxxflags="{cxxflags}"'
@@ -249,6 +262,7 @@ class BotanConan(ConanFile):
                          ' --os={os}'
                          ' {build_flags}').format(
                              python_call=call_python,
+                             targets=",".join(build_targets),
                              abi=botan_abi,
                              cxxflags=botan_cxx_extras,
                              compiler=botan_compiler,
@@ -261,7 +275,7 @@ class BotanConan(ConanFile):
 
     @property
     def _make_cmd(self):
-        return self._nmake_cmd if self.settings.compiler == 'Visual Studio' else self._gnumake_cmd
+        return self._jom_cmd if self.settings.compiler == 'Visual Studio' else self._gnumake_cmd
 
     def check_cxx_abi_settings(self):
         compiler = self.settings.compiler
@@ -299,16 +313,16 @@ class BotanConan(ConanFile):
         return make_cmd
 
     @property
-    def _nmake_cmd(self):
+    def _jom_cmd(self):
         vcvars = tools.vcvars_command(self.settings)
-        make_cmd = vcvars + ' && nmake'
+        make_cmd = vcvars + ' && jom -j {}'.format(tools.cpu_count())
         return make_cmd
 
     @property
     def _make_install_cmd(self):
         if self.settings.compiler == 'Visual Studio':
             vcvars = tools.vcvars_command(self.settings)
-            make_install_cmd = vcvars + ' && nmake install'
+            make_install_cmd = vcvars + ' && jom install'
         else:
             make_install_cmd = '{make} install'.format(make=self._make_program)
         return make_install_cmd
