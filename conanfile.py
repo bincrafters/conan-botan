@@ -9,7 +9,7 @@ from conans.model.version import Version
 
 class BotanConan(ConanFile):
     name = 'botan'
-    version = '2.12.0'
+    version = '2.12.1'
     url = "https://github.com/bincrafters/conan-botan"
     homepage = "https://github.com/randombit/botan"
     author = "Bincrafters <bincrafters@gmail.com>"
@@ -88,14 +88,6 @@ class BotanConan(ConanFile):
         tools.get("{0}/archive/{1}.tar.gz".format(self.homepage, self.version))
         extracted_dir = "botan-" + self.version
         os.rename(extracted_dir, "sources")
-
-        # This patch is required to build on GCC 4.9 for 32bits. It will
-        # (likely) be included in the next Botan release (2.12.1).
-        #
-        # See associated issue in Botan:
-        #   https://github.com/randombit/botan/issues/2139
-        with tools.chdir("sources"):
-            tools.patch(patch_file='../patches/db32722.patch')
 
     def build(self):
         with tools.chdir('sources'):
