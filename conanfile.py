@@ -246,6 +246,7 @@ class BotanConan(ConanFile):
         configure_cmd = ('{python_call} ./configure.py'
                          ' --build-targets={targets}'
                          ' --distribution-info="Conan"'
+                         ' --without-documentation'
                          ' --cc-abi-flags="{abi}"'
                          ' --extra-cxxflags="{cxxflags}"'
                          ' --cc={compiler}'
