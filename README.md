@@ -2,7 +2,7 @@
 
 | Bintray | Appveyor | Travis |
 |---------|-----------|--------|
-|[![Download](https://api.bintray.com/packages/bincrafters/public-conan/botan%3Abincrafters/images/download.svg) ](https://bintray.com/bincrafters/public-conan/botan%3Abincrafters/_latestVersion)|[![Build status](https://ci.appveyor.com/api/projects/status/github/bincrafters/conan-botan?svg=true)](https://ci.appveyor.com/project/BinCrafters/conan-botan)|[![Build Status](https://travis-ci.org/bincrafters/conan-botan.svg)](https://travis-ci.org/bincrafters/conan-botan)|
+|[![Download](https://api.bintray.com/packages/bincrafters/public-conan/botan%3Abincrafters/images/download.svg) ](https://bintray.com/bincrafters/public-conan/botan%3Abincrafters/_latestVersion)|[![Build status](https://ci.appveyor.com/api/projects/status/github/bincrafters/conan-botan?svg=true)](https://ci.appveyor.com/project/BinCrafters/conan-botan)|[![Build Status](https://travis-ci.com/bincrafters/conan-botan.svg)](https://travis-ci.com/bincrafters/conan-botan)|
 
 ## Conan.io Information
 
