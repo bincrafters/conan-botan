@@ -43,10 +43,11 @@ class BotanConan(ConanFile):
                        'system_cert_bundle': None}
 
     def configure(self):
-        if self.settings.os == "Windows" and \
-           self.settings.compiler == "Visual Studio" and \
-           Version(self.settings.compiler.version.value) < "14":
-               raise ConanInvalidConfiguration("Botan doesn't support MSVC < 14")
+        msvc_too_old = self.settings.os == "Windows" and \
+                       self.settings.compiler == "Visual Studio" and \
+                       Version(self.settings.compiler.version.value) < "14"
+        if msvc_too_old:
+            raise ConanInvalidConfiguration("Botan doesn't support MSVC < 14")
 
         if self.options.boost:
             self.options["boost"].add("shared=False")
@@ -162,6 +163,11 @@ class BotanConan(ConanFile):
 
         if self.settings.os != "Windows" and self.options.fPIC:
             botan_extra_cxx_flags.append('-fPIC')
+
+        if self.settings.os == "Macos" and self.settings.os.version:
+            macos_min_version = tools.apple_deployment_target_flag(self.settings.os, self.settings.os.version)
+            macos_sdk_path = "-isysroot {}".format(tools.XCRun(self.settings).sdk_path)
+            botan_extra_cxx_flags.extend([macos_min_version, macos_sdk_path])
 
         # This is to work around botan's configure script that *replaces* its
         # standard (platform dependent) flags in presence of an environment
