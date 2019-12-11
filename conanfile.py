@@ -1,10 +1,7 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import os
 from conans import ConanFile, tools
 from conans.errors import ConanException, ConanInvalidConfiguration
-from conans.model.version import Version
+from conans.tools import Version
 
 
 class BotanConan(ConanFile):
@@ -12,7 +9,6 @@ class BotanConan(ConanFile):
     version = '2.12.1'
     url = "https://github.com/bincrafters/conan-botan"
     homepage = "https://github.com/randombit/botan"
-    author = "Bincrafters <bincrafters@gmail.com>"
     license = "BSD 2-clause"
     exports = ["LICENSE.md", "patches/*"]
     description = "Botan is a cryptography library written in C++11."
@@ -65,11 +61,11 @@ class BotanConan(ConanFile):
 
     def requirements(self):
         if self.options.bzip2:
-            self.requires('bzip2/1.0.6@conan/stable')
+            self.requires('bzip2/1.0.6')
         if self.options.openssl:
-            self.requires('OpenSSL/1.0.2o@conan/stable')
+            self.requires('openssl/1.0.2t')
         if self.options.zlib:
-            self.requires('zlib/1.2.11@conan/stable')
+            self.requires('zlib/1.2.11')
         if self.options.sqlite3:
             self.requires('sqlite3/3.25.3@bincrafters/stable')
         if self.options.boost:
@@ -167,6 +163,11 @@ class BotanConan(ConanFile):
 
         if self.settings.os != "Windows" and self.options.fPIC:
             botan_extra_cxx_flags.append('-fPIC')
+
+        if self.settings.os == "Macos" and self.settings.os.version:
+            macos_min_version = tools.apple_deployment_target_flag(self.settings.os, self.settings.os.version)
+            macos_sdk_path = "-isysroot {}".format(tools.XCRun(self.settings).sdk_path)
+            botan_extra_cxx_flags.extend([macos_min_version, macos_sdk_path])
 
         # This is to work around botan's configure script that *replaces* its
         # standard (platform dependent) flags in presence of an environment
